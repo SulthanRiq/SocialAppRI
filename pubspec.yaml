@@ -60,9 +60,6 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/social_bear.png
-    - assets/icons/google.png
-    - assets/icons/facebook.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

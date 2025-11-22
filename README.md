@@ -1,16 +1,19 @@
-# projek_mobile
+1. Nama Aplikasi : SocialApp 
 
-A new Flutter project.
+2. Deskripsi Aplikasi : SocialApp adalah platform media sosial modern yang dirancang untuk menghubungkan orang-orang dari berbagai kalangan dalam satu ekosistem digital yang intuitif dan user-friendly. Terinspirasi dari konsep microblogging seperti Twitter/X, SocialApp memungkinkan pengguna untuk berbagi pemikiran, ide, dan momen dalam kehidupan mereka secara real-time. Dengan fitur utama Focs-C (Focus Content) adalah fitur inovatif yang membedakan SocialApp dari platform media sosial lainnya. Mode ini dirancang khusus untuk pengguna yang ingin tetap terhubung namun membutuhkan waktu fokus tanpa gangguan. 
 
-## Getting Started
+3. Kelas-NIM-Nama :
+ D-202210370311230-Sulthan Ariq Athallah 
+ D-202210370311232-Andien Tasya Belva Yoladra 
+ D-202210370311245-Raihan Rahmadi Rahman 
+ A-202210370311235-Ilman Nafian 
+ A-202210370311456-Muhammad Ahdan Fauzan 
+ 
+4. Link Figma : https://www.figma.com/design/qAtSu5qZhVxmbu4ABWaPCU/Rekayasa-Interaksi---Social-Media?node-id=140-4966&p=f&t=vdDHKttzuhbggJ9j-0 
+ 
+5. Worksheet : https://drive.google.com/drive/folders/1nFt5qJlWgX2Oua8k3odLcnt6tucbxyJl?usp=sharing 
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+6. Low Fidelity Prototype : https://drive.google.com/drive/folders/1LZKdboOFmlxlTKVtmtdaCQ71sWWJ_FHV?usp=sharing 
+ 
+7. Tabel pembagian BackLog : ![TabelBackLog](assets/images/TabelBackLog.png)
+ 

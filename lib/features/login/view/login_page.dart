@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projek_mobile/features/register/view/register_page.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -48,17 +49,6 @@ class LoginPage extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 8),
-
-                    const Text(
-                      'SOCIAL\nAPP',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        letterSpacing: 4,
-                        fontSize: 14,
-                      ),
-                    ),
-
                     const SizedBox(height: 16),
 
                     // Tagline
@@ -92,7 +82,6 @@ class LoginPage extends StatelessWidget {
                     const SizedBox(height: 6),
                     TextField(
                       decoration: InputDecoration(
-                        hintText: 'user@gmail.com',
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
@@ -127,7 +116,6 @@ class LoginPage extends StatelessWidget {
                     TextField(
                       obscureText: true,
                       decoration: InputDecoration(
-                        hintText: '12345678',
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
@@ -187,6 +175,40 @@ class LoginPage extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16,
                             letterSpacing: 1.2,
+                            color: Colors.white
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // TOMBOL REGISTER
+                    SizedBox(
+                      width: 140,
+                      height: 46,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const RegisterPage(),
+                              ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orangeAccent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 2,
+                        ),
+                        child: const Text(
+                          'SIGN UP',
+                          style: TextStyle(
+                              fontSize: 16,
+                              letterSpacing: 1.2,
+                              color: Colors.white
                           ),
                         ),
                       ),

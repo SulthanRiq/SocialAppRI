@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projek_mobile/features/login/view/login_page.dart';
 //tes
 
 void main() {
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
       ),
 
       // Halaman pertama yang ditampilkan saat aplikasi dibuka
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const LoginPage(),
     );
   }
 }

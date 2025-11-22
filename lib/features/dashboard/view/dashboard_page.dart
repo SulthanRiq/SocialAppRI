@@ -1,247 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:projek_mobile/features/profile/view/profile.dart';
+// Import file ShareView kita.
+// Jika struktur folder Anda berbeda, sesuaikan path ini.
+import 'share_view.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class DashboardView extends StatefulWidget {
+  const DashboardView({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<DashboardView> createState() => _DashboardViewState();
 }
 
-class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0; // Index untuk bottom navigation
+class _DashboardViewState extends State<DashboardView> {
+  int _selectedTabIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    final Color topBarColor = const Color(0xFF6B95A8); // biru abu-abu
-    final Color bgColor = const Color(0xFFB8C5CC);     // abu-abu terang
-    final Color cardColor = const Color(0xFFD9D9D9);   // abu-abu card
-
     return Scaffold(
-      backgroundColor: bgColor,
       body: SafeArea(
-        child: Column(
+        bottom: false,
+        child: Stack(
           children: [
-            // TOP BAR dengan foto profil dan tombol add
-            Container(
-              height: 70,
-              width: double.infinity,
-              color: topBarColor,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Foto profil (kiri)
-                  GestureDetector(
-                    onTap: () {
-                      // TODO: navigasi ke profil
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const ProfileMenuPage(),
-                          ),
-                      );
-                    },
-                    child: CircleAvatar(
-                      radius: 26,
-                      backgroundColor: Colors.white,
-                      child: CircleAvatar(
-                        radius: 24,
-                        backgroundImage: AssetImage('assets/images/profile.png'),
-                        // Jika tidak ada gambar, pakai icon default
-                        child: Image.asset(
-                          'assets/images/profile.png',
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(Icons.person, size: 30);
-                          },
-                        ),
+            Column(
+              children: [
+                _buildTopBar(),
+                _buildTabBar(),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+                    children: [
+                      const PostCard(
+                        avatarColor: Colors.transparent,
+                        username: "@lifestyle_daily",
+                        content: "Tips hidup sehat...",
+                        imageUrl: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80",
+                        likes: "20.5k",
+                        comments: "2k",
+                        shares: "12",
+                        isNews: false,
                       ),
-                    ),
+                      const SizedBox(height: 20),
+                      const PostCard(
+                        avatarColor: Colors.transparent,
+                        username: "@Breaking_News",
+                        time: "15m",
+                        content: "Trending Now\n\n“POLITISI X KORUPSI TRILIUNAN RUPIAH !\nBukti Mengejutkan ! “",
+                        subContent: "[Breaking News Image]",
+                        source: "detik.com",
+                        trustScore: "Trust: 7.5/10",
+                        likes: "150.2k",
+                        comments: "21,4 k",
+                        shares: "",
+                        isNews: true, // Ini yang akan memunculkan tombol Share
+                      ),
+                    ],
                   ),
-
-                  // Tombol add (kanan)
-                  GestureDetector(
-                    onTap: () {
-                      // TODO: buat post baru
-                    },
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.7),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.black54,
-                        size: 30,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // TAB BAR (For You, Icon, Following)
-            Container(
-              height: 50,
-              color: const Color(0xFFA8B5BC),
-              child: Row(
-                children: [
-                  // Tab For You
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.black,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      child: const Text(
-                        'For You',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Tab Icon (tengah)
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: Image.asset(
-                        'assets/images/social_bear_small.png',
-                        height: 35,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.pets, size: 30);
-                        },
-                      ),
-                    ),
-                  ),
-
-                  // Tab Following
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Following',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // CONTENT AREA
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 120),
-
-                    // CARD WELCOME
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Judul dengan emoji
-                          RichText(
-                            text: const TextSpan(
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black87,
-                                height: 1.4,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: 'Hello...\nWelcome to Social APP! 🎉 🎉\n\n',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                                TextSpan(
-                                  text: 'Mulai explore konten menarik atau buat post pertama kamu!',
-                                  style: TextStyle(fontWeight: FontWeight.normal),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 200),
-                  ],
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
-
-      // BOTTOM NAVIGATION BAR
-      bottomNavigationBar: Container(
-        height: 65,
-        decoration: BoxDecoration(
-          color: topBarColor,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            // Home
-            _buildNavItem(
-              icon: Icons.home,
-              isSelected: _selectedIndex == 0,
-              onTap: () => setState(() => _selectedIndex = 0),
-            ),
-
-            // Search
-            _buildNavItem(
-              icon: Icons.search,
-              isSelected: _selectedIndex == 1,
-              onTap: () => setState(() => _selectedIndex = 1),
-            ),
-
-            // Create (dengan background)
-            _buildNavItem(
-              icon: Icons.add_box,
-              isSelected: _selectedIndex == 2,
-              onTap: () => setState(() => _selectedIndex = 2),
-            ),
-
-            // Notifications
-            _buildNavItem(
-              icon: Icons.notifications,
-              isSelected: _selectedIndex == 3,
-              onTap: () => setState(() => _selectedIndex = 3),
-            ),
-
-            // Messages
-            _buildNavItem(
-              icon: Icons.chat_bubble,
-              isSelected: _selectedIndex == 4,
-              onTap: () => setState(() => _selectedIndex = 4),
+            const Positioned(
+              bottom: 0, left: 0, right: 0,
+              child: CustomBottomNavBar(),
             ),
           ],
         ),
@@ -249,36 +67,146 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Helper widget untuk navigation item
-  Widget _buildNavItem({
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildTopBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const CircleAvatar(
+            radius: 18,
+            backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+          ),
+          Container(
+            decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.3)),
+            child: IconButton(icon: const Icon(Icons.add, color: Colors.white), onPressed: () {}),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildTabItem("For You", 0),
+          const Icon(Icons.catching_pokemon, color: Colors.white54, size: 30),
+          _buildTabItem("Following", 1),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabItem(String text, int index) {
+    bool isSelected = _selectedTabIndex == index;
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : Colors.white70,
-              size: 28,
-            ),
-            if (isSelected)
-              Container(
-                margin: const EdgeInsets.only(top: 4),
-                height: 3,
-                width: 30,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+      onTap: () => setState(() => _selectedTabIndex = index),
+      child: Column(
+        children: [
+          Text(text, style: TextStyle(fontSize: 16, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: Colors.black87)),
+          if (isSelected) Container(margin: const EdgeInsets.only(top: 4), height: 3, width: 40, color: Colors.blue)
+        ],
+      ),
+    );
+  }
+}
+
+// --- WIDGET PENDUKUNG DASHBOARD ---
+
+class PostCard extends StatelessWidget {
+  final String username, time, content, likes, comments, shares;
+  final String? subContent, source, trustScore;
+  final String imageUrl;
+  final Color avatarColor;
+  final bool isNews;
+
+  const PostCard({
+    super.key,
+    required this.username,
+    this.time = "",
+    required this.content,
+    this.subContent,
+    this.imageUrl = "",
+    required this.likes,
+    required this.comments,
+    required this.shares,
+    required this.avatarColor,
+    this.isNews = false,
+    this.source,
+    this.trustScore,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE0E0E0),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 5, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [Text(username, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), if (time.isNotEmpty) Text(" · $time", style: const TextStyle(color: Colors.grey))]),
+          if (isNews) Padding(padding: const EdgeInsets.only(top: 4), child: Row(children: const [Icon(Icons.local_fire_department, color: Colors.red, size: 16), SizedBox(width: 4), Text("Trending Now", style: TextStyle(fontSize: 12, color: Colors.black54))])),
+          const SizedBox(height: 8),
+          Text(content, style: const TextStyle(fontSize: 14, height: 1.4)),
+          const SizedBox(height: 12),
+          if (imageUrl.isNotEmpty) ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(imageUrl, height: 120, width: double.infinity, fit: BoxFit.cover, errorBuilder: (ctx, err, stack) => Container(height: 120, color: Colors.grey[300], child: const Icon(Icons.image)))),
+          if (subContent != null) Container(margin: const EdgeInsets.symmetric(vertical: 10), padding: const EdgeInsets.all(20), width: double.infinity, color: Colors.grey[300], child: Center(child: Text(subContent!))),
+          if (isNews) Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: Row(children: [Text(source ?? "", style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(width: 8), const Icon(Icons.lock_outline, size: 14, color: Colors.grey), Text(" $trustScore", style: const TextStyle(color: Colors.grey))])),
+          const SizedBox(height: 12),
+          Row(children: [const Icon(Icons.favorite, size: 20), const SizedBox(width: 4), Text(likes), const SizedBox(width: 20), const Icon(Icons.mode_comment_outlined, size: 20), const SizedBox(width: 4), Text(comments), if (shares.isNotEmpty) ...[const SizedBox(width: 20), const Icon(Icons.share_outlined, size: 20), const SizedBox(width: 4), Text(shares)]]),
+
+          // --- BAGIAN NAVIGASI KE SHARE ---
+          if (isNews)
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: Row(
+                children: [
+                  Expanded(child: ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8FA37E)), child: const Text("Baca", style: TextStyle(color: Colors.white)))),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // NAVIGASI KE SHARE VIEW
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ShareView()));
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC4C46A)),
+                      child: const Text("Share", style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ],
               ),
-          ],
-        ),
+            )
+        ],
+      ),
+    );
+  }
+}
+
+class CustomBottomNavBar extends StatelessWidget {
+  const CustomBottomNavBar({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 80,
+      child: Stack(
+        children: [
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              height: 60,
+              decoration: const BoxDecoration(color: Color(0xFF9FB8C7), border: Border(top: BorderSide(color: Colors.white30)), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)]),
+              child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [const SizedBox(width: 40), IconButton(icon: const Icon(Icons.search, size: 30), onPressed: () {}), IconButton(icon: const Icon(Icons.nightlight_round, size: 30), onPressed: () {}), IconButton(icon: const Icon(Icons.notifications_none, size: 30), onPressed: () {}), IconButton(icon: const Icon(Icons.chat_bubble_outline, size: 30), onPressed: () {})]),
+            ),
+          ),
+          Positioned(left: 20, bottom: 15, child: Container(height: 60, width: 60, decoration: BoxDecoration(color: Colors.black, shape: BoxShape.circle, border: Border.all(color: const Color(0xFF9FB8C7), width: 4), boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4))]), child: const Icon(Icons.home, color: Colors.white, size: 35))),
+        ],
       ),
     );
   }

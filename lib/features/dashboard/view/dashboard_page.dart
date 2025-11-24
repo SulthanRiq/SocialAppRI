@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-// Import file ShareView kita.
-// Jika struktur folder Anda berbeda, sesuaikan path ini.
-import 'share_view.dart';
+import 'package:projek_mobile/features/dashboard/view/share_view.dart';
+import 'package:projek_mobile/features/dashboard/view/article_detail_view.dart';
+import 'package:projek_mobile/features/dashboard/view/health_comment_view.dart';
+import 'package:projek_mobile/features/dashboard/view/politics_comment_view.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -28,7 +29,7 @@ class _DashboardViewState extends State<DashboardView> {
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
                     children: [
-                      const PostCard(
+                      PostCard(
                         avatarColor: Colors.transparent,
                         username: "@lifestyle_daily",
                         content: "Tips hidup sehat...",
@@ -37,20 +38,44 @@ class _DashboardViewState extends State<DashboardView> {
                         comments: "2k",
                         shares: "12",
                         isNews: false,
+                        onCommentTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const HealthCommentView()),
+                          );
+                        },
                       ),
                       const SizedBox(height: 20),
-                      const PostCard(
+                      PostCard(
                         avatarColor: Colors.transparent,
                         username: "@Breaking_News",
                         time: "15m",
-                        content: "Trending Now\n\n“POLITISI X KORUPSI TRILIUNAN RUPIAH !\nBukti Mengejutkan ! “",
+                        content: 'Trending Now\n\n"POLITISI X KORUPSI TRILIUNAN RUPIAH !\nBukti Mengejutkan ! "',
                         subContent: "[Breaking News Image]",
                         source: "detik.com",
                         trustScore: "Trust: 7.5/10",
                         likes: "150.2k",
                         comments: "21,4 k",
                         shares: "",
-                        isNews: true, // Ini yang akan memunculkan tombol Share
+                        isNews: true,
+                        onReadTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ArticleDetailView()),
+                          );
+                        },
+                        onShareTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ShareView()),
+                          );
+                        },
+                        onCommentTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const PoliticsCommentView()),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -122,6 +147,9 @@ class PostCard extends StatelessWidget {
   final String imageUrl;
   final Color avatarColor;
   final bool isNews;
+  final VoidCallback? onReadTap;
+  final VoidCallback? onShareTap;
+  final VoidCallback? onCommentTap;
 
   const PostCard({
     super.key,
@@ -137,6 +165,9 @@ class PostCard extends StatelessWidget {
     this.isNews = false,
     this.source,
     this.trustScore,
+    this.onReadTap,
+    this.onShareTap,
+    this.onCommentTap,
   });
 
   @override
@@ -156,26 +187,50 @@ class PostCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(content, style: const TextStyle(fontSize: 14, height: 1.4)),
           const SizedBox(height: 12),
-          if (imageUrl.isNotEmpty) ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(imageUrl, height: 120, width: double.infinity, fit: BoxFit.cover, errorBuilder: (ctx, err, stack) => Container(height: 120, color: Colors.grey[300], child: const Icon(Icons.image)))),
+          if (imageUrl.isNotEmpty) ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(imageUrl, height: 120, width: double.infinity, fit: BoxFit.cover, errorBuilder: (ctx, err, stack) => Container(height: 120, color: Colors.grey[300]))),
           if (subContent != null) Container(margin: const EdgeInsets.symmetric(vertical: 10), padding: const EdgeInsets.all(20), width: double.infinity, color: Colors.grey[300], child: Center(child: Text(subContent!))),
           if (isNews) Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: Row(children: [Text(source ?? "", style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(width: 8), const Icon(Icons.lock_outline, size: 14, color: Colors.grey), Text(" $trustScore", style: const TextStyle(color: Colors.grey))])),
           const SizedBox(height: 12),
-          Row(children: [const Icon(Icons.favorite, size: 20), const SizedBox(width: 4), Text(likes), const SizedBox(width: 20), const Icon(Icons.mode_comment_outlined, size: 20), const SizedBox(width: 4), Text(comments), if (shares.isNotEmpty) ...[const SizedBox(width: 20), const Icon(Icons.share_outlined, size: 20), const SizedBox(width: 4), Text(shares)]]),
 
-          // --- BAGIAN NAVIGASI KE SHARE ---
+          // Stats Row dengan onTap untuk komentar
+          GestureDetector(
+            onTap: onCommentTap,
+            child: Row(
+              children: [
+                const Icon(Icons.favorite, size: 20),
+                const SizedBox(width: 4),
+                Text(likes),
+                const SizedBox(width: 20),
+                const Icon(Icons.mode_comment_outlined, size: 20),
+                const SizedBox(width: 4),
+                Text(comments),
+                if (shares.isNotEmpty) ...[
+                  const SizedBox(width: 20),
+                  const Icon(Icons.share_outlined, size: 20),
+                  const SizedBox(width: 4),
+                  Text(shares)
+                ]
+              ],
+            ),
+          ),
+
+          // --- BAGIAN NAVIGASI KE SHARE DAN BACA ---
           if (isNews)
             Padding(
               padding: const EdgeInsets.only(top: 16.0),
               child: Row(
                 children: [
-                  Expanded(child: ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8FA37E)), child: const Text("Baca", style: TextStyle(color: Colors.white)))),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: onReadTap ?? () {},
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8FA37E)),
+                      child: const Text("Baca", style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
-                        // NAVIGASI KE SHARE VIEW
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ShareView()));
-                      },
+                      onPressed: onShareTap ?? () {},
                       style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC4C46A)),
                       child: const Text("Share", style: TextStyle(color: Colors.white)),
                     ),

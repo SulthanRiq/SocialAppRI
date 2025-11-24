@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projek_mobile/features/dashboard/view/share_result_view.dart';
 
 class ShareView extends StatefulWidget {
   const ShareView({super.key});
@@ -8,8 +9,8 @@ class ShareView extends StatefulWidget {
 }
 
 class _ShareViewState extends State<ShareView> {
-  int? _readStatusValue = 0;
-  int? _understandStatusValue = 0;
+  int? _readStatusValue;
+  int? _understandStatusValue;
 
   @override
   Widget build(BuildContext context) {
@@ -101,8 +102,8 @@ class _ShareViewState extends State<ShareView> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: const [
-                                Text("• \"Triliunan\" - no source", style: TextStyle(fontSize: 13)),
-                                Text("• \"Bukti\" - not shown", style: TextStyle(fontSize: 13)),
+                                Text('• "Triliunan" - no source', style: TextStyle(fontSize: 13)),
+                                Text('• "Bukti" - not shown', style: TextStyle(fontSize: 13)),
                               ],
                             ),
                           ),
@@ -151,14 +152,78 @@ class _ShareViewState extends State<ShareView> {
 
                     const Divider(thickness: 2, color: Colors.black54, height: 40),
 
-                    // BUTTON SHARE FINAL
+                    // PILIH TINDAKAN
+                    const Center(
+                      child: Text(
+                        "PILIH TINDAKAN",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Link pilihan
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.popUntil(context, (route) => route.isFirst);
+                          },
+                          child: const Text(
+                            "KEMBALI KE DASHBOARD",
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.black54,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            // TODO: Buka artikel lengkap
+                          },
+                          child: const Text(
+                            "BACA ARTIKEL LENGKAP",
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Color(0xFF60859A),
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // BUTTON SHARE - NAVIGASI KE SHARE RESULT VIEW
                     Center(
                       child: SizedBox(
                         width: 150,
                         height: 45,
                         child: ElevatedButton(
                           onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Shared successfully!")));
+                            // Hitung score dan status
+                            String quizScore = _calculateQuizScore();
+                            String status = _getReaderStatus();
+
+                            // Navigasi ke ShareResultView dengan data
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ShareResultView(
+                                  quizScore: quizScore,
+                                  readingTime: '3m 15s',
+                                  status: status,
+                                  articleTitle: '"Politisi X Korupsi..."',
+                                  source: 'detik.com',
+                                  verifiedBy: 'Budi',
+                                ),
+                              ),
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF8FA37E),
@@ -178,6 +243,25 @@ class _ShareViewState extends State<ShareView> {
         ),
       ),
     );
+  }
+
+  // Hitung quiz score berdasarkan jawaban
+  String _calculateQuizScore() {
+    int score = 0;
+    if (_readStatusValue == 1) score++; // Ya, baca semua
+    if (_understandStatusValue == 1) score++; // 100%
+    return '$score/2';
+  }
+
+  // Tentukan status reader
+  String _getReaderStatus() {
+    if (_readStatusValue == 1 && _understandStatusValue == 1) {
+      return 'Informed Reader';
+    } else if (_readStatusValue == 1 || _understandStatusValue == 1) {
+      return 'Partial Reader';
+    } else {
+      return 'Quick Reader';
+    }
   }
 
   Widget _buildAnalysisItem(IconData icon, String title, String stat, String desc) {

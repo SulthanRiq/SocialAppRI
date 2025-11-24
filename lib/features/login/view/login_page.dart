@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projek_mobile/features/register/view/register_page.dart';
+import '../../dashboard/view/dashboard_content_page.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -162,6 +163,12 @@ class LoginPage extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () {
                           // TODO: aksi login
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const DashboardView()
+                              ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: buttonGreen,

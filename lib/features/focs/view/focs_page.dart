@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 // Import TopicFilterBottomSheet
 import 'topic_filter_page.dart'; // Uncomment dan sesuaikan path
+import 'package:projek_mobile/features/inbox/view/inbox_page.dart';
 
 class FocsCScreen extends StatefulWidget {
   const FocsCScreen({Key? key}) : super(key: key);
@@ -482,15 +483,44 @@ class _FocsCScreenState extends State<FocsCScreen> {
   Widget _buildNavItem(IconData icon, bool isActive, int index) {
     return GestureDetector(
       onTap: () {
+        // Jangan navigate jika sudah di halaman yang aktif
+        if (isActive) return;
+
         // Navigasi sesuai index
-        if (index == 0) {
-          // Kembali ke Home
-          Navigator.pop(context);
-        } else if (index == 4) {
-          // Navigasi ke Inbox (jika sudah dibuat)
-          // Navigator.push(context, MaterialPageRoute(builder: (context) => InboxScreen()));
+        switch (index) {
+          case 0:
+            // Home - Kembali ke HomePage
+            Navigator.pop(context);
+            break;
+          case 1:
+            // Search - TODO: Tambahkan navigasi ke SearchScreen
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Search feature coming soon!'),
+                duration: Duration(seconds: 1),
+              ),
+            );
+            break;
+          case 2:
+            // Focs Mode - Sudah di halaman ini
+            break;
+          case 3:
+            // Notifications - TODO: Tambahkan navigasi ke NotificationScreen
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Notifications feature coming soon!'),
+                duration: Duration(seconds: 1),
+              ),
+            );
+            break;
+          case 4:
+            // Messages - Navigasi ke InboxScreen
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const InboxScreen()),
+            );
+            break;
         }
-        // Tambahkan navigasi lain sesuai kebutuhan
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),

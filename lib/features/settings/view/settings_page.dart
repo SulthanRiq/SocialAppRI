@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projek_mobile/features/privacy/view/privacy_page.dart';
+import 'package:projek_mobile/features/Account/account_page.dart'; // <-- IMPORT BARU
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -89,10 +90,17 @@ class SettingsPage extends StatelessWidget {
                     _buildSettingCard(
                       context: context,
                       title: 'Account',
-                      description: 'Informasi akun, password,\ndisplay, protected mode',
+                      description:
+                      'Informasi akun, password,\ndisplay, protected mode',
                       buttonColor: buttonGreen,
                       onTap: () {
-                        // TODO: navigasi ke Account settings
+                        // Navigasi ke halaman Account
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AccountPage(),
+                          ),
+                        );
                       },
                     ),
 
@@ -102,15 +110,15 @@ class SettingsPage extends StatelessWidget {
                     _buildSettingCard(
                       context: context,
                       title: 'Privacy',
-                      description: 'Privacy control, data usage,\nwellness dashboard',
+                      description:
+                      'Privacy control, data usage,\nwellness dashboard',
                       buttonColor: buttonGreen,
                       onTap: () {
-                        // TODO: navigasi ke Privacy settings
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const PrivacyPage()
-                            ),
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PrivacyPage(),
+                          ),
                         );
                       },
                     ),

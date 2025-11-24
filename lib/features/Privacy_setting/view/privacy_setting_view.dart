@@ -66,7 +66,7 @@ class PrivacyView extends GetView<PrivacyController> {
                         Icon(Icons.lock_outline, size: 18),
                         SizedBox(width: 8),
                         Text(
-                          'Privacy Setting',
+                          'Privaci Setting',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,

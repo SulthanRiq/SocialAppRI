@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:projek_mobile/features/login/view/login_page.dart';
-import 'features/notification/view/notification_page.dart';
-import 'features/dashboard/view/dashboard_page.dart';
 //tes
 
 void main() {
@@ -27,7 +25,7 @@ class MyApp extends StatelessWidget {
       ),
 
       // Halaman pertama yang ditampilkan saat aplikasi dibuka
-      home: const DashboardView(),
+      home: const LoginPage(),
     );
   }
 }

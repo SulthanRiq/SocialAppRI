@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:projek_mobile/features/profile/view/profile.dart';
+// Import halaman Focs-C yang sudah dibuat
+import 'package:projek_mobile/features/focs/view/focs_page.dart'; // Sesuaikan path ini
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,8 +16,8 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final Color topBarColor = const Color(0xFF6B95A8); // biru abu-abu
-    final Color bgColor = const Color(0xFFB8C5CC);     // abu-abu terang
-    final Color cardColor = const Color(0xFFD9D9D9);   // abu-abu card
+    final Color bgColor = const Color(0xFFB8C5CC); // abu-abu terang
+    final Color cardColor = const Color(0xFFD9D9D9); // abu-abu card
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -34,12 +36,11 @@ class _HomePageState extends State<HomePage> {
                   // Foto profil (kiri)
                   GestureDetector(
                     onTap: () {
-                      // TODO: navigasi ke profil
                       Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const ProfileMenuPage(),
-                          ),
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileMenuPage(),
+                        ),
                       );
                     },
                     child: CircleAvatar(
@@ -47,8 +48,8 @@ class _HomePageState extends State<HomePage> {
                       backgroundColor: Colors.white,
                       child: CircleAvatar(
                         radius: 24,
-                        backgroundImage: AssetImage('assets/images/profile.png'),
-                        // Jika tidak ada gambar, pakai icon default
+                        backgroundImage:
+                            AssetImage('assets/images/profile.png'),
                         child: Image.asset(
                           'assets/images/profile.png',
                           errorBuilder: (context, error, stackTrace) {
@@ -170,12 +171,15 @@ class _HomePageState extends State<HomePage> {
                               ),
                               children: [
                                 TextSpan(
-                                  text: 'Hello...\nWelcome to Social APP! 🎉 🎉\n\n',
+                                  text:
+                                      'Hello...\nWelcome to Social APP! 🎉 🎉\n\n',
                                   style: TextStyle(fontWeight: FontWeight.w600),
                                 ),
                                 TextSpan(
-                                  text: 'Mulai explore konten menarik atau buat post pertama kamu!',
-                                  style: TextStyle(fontWeight: FontWeight.normal),
+                                  text:
+                                      'Mulai explore konten menarik atau buat post pertama kamu!',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.normal),
                                 ),
                               ],
                             ),
@@ -223,11 +227,20 @@ class _HomePageState extends State<HomePage> {
               onTap: () => setState(() => _selectedIndex = 1),
             ),
 
-            // Create (dengan background)
+            // Create / Focs Mode (tombol tengah) - NAVIGASI KE FOCS-C
             _buildNavItem(
               icon: Icons.add_box,
               isSelected: _selectedIndex == 2,
-              onTap: () => setState(() => _selectedIndex = 2),
+              onTap: () {
+                setState(() => _selectedIndex = 2);
+                // Navigasi ke halaman Focs-C
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FocsCScreen(),
+                  ),
+                );
+              },
             ),
 
             // Notifications

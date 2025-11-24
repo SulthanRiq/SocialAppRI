@@ -7,7 +7,7 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color topBarColor = const Color(0xFF0F9D7E); // hijau tosca
-    final Color bgColor = const Color(0xFF82AFC3);     // biru muda
+    final Color bgColor = const Color(0xFF82AFC3); // biru muda
     final Color buttonYellow = const Color(0xFFE8B44C); // kuning tombol
 
     return Scaffold(
@@ -261,10 +261,10 @@ class RegisterPage extends StatelessWidget {
                         onPressed: () {
                           // TODO: aksi sign up
                           Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const DashboardView(),
-                              ),
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const DashboardView(),
+                            ),
                           );
                         },
                         style: ElevatedButton.styleFrom(

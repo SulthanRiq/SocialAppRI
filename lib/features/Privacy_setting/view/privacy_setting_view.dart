@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'privacy_controller.dart';
+import '../controller/privacy_setting_controller.dart';
 
 class PrivacyView extends GetView<PrivacyController> {
   const PrivacyView({super.key});

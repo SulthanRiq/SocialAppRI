@@ -33,7 +33,8 @@ class _DashboardViewState extends State<DashboardView> {
                         avatarColor: Colors.transparent,
                         username: "@lifestyle_daily",
                         content: "Tips hidup sehat...",
-                        imageUrl: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80",
+                        imageUrl:
+                            "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80",
                         likes: "20.5k",
                         comments: "2k",
                         shares: "12",
@@ -41,7 +42,9 @@ class _DashboardViewState extends State<DashboardView> {
                         onCommentTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const HealthCommentView()),
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const HealthCommentView()),
                           );
                         },
                       ),
@@ -50,7 +53,8 @@ class _DashboardViewState extends State<DashboardView> {
                         avatarColor: Colors.transparent,
                         username: "@Breaking_News",
                         time: "15m",
-                        content: 'Trending Now\n\n"POLITISI X KORUPSI TRILIUNAN RUPIAH !\nBukti Mengejutkan ! "',
+                        content:
+                            'Trending Now\n\n"POLITISI X KORUPSI TRILIUNAN RUPIAH !\nBukti Mengejutkan ! "',
                         subContent: "[Breaking News Image]",
                         source: "detik.com",
                         trustScore: "Trust: 7.5/10",
@@ -61,19 +65,24 @@ class _DashboardViewState extends State<DashboardView> {
                         onReadTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const ArticleDetailView()),
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const ArticleDetailView()),
                           );
                         },
                         onShareTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const ShareView()),
+                            MaterialPageRoute(
+                                builder: (context) => const ShareView()),
                           );
                         },
                         onCommentTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const PoliticsCommentView()),
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const PoliticsCommentView()),
                           );
                         },
                       ),
@@ -83,7 +92,9 @@ class _DashboardViewState extends State<DashboardView> {
               ],
             ),
             const Positioned(
-              bottom: 0, left: 0, right: 0,
+              bottom: 0,
+              left: 0,
+              right: 0,
               child: CustomBottomNavBar(),
             ),
           ],
@@ -103,8 +114,11 @@ class _DashboardViewState extends State<DashboardView> {
             backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
           ),
           Container(
-            decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.3)),
-            child: IconButton(icon: const Icon(Icons.add, color: Colors.white), onPressed: () {}),
+            decoration: BoxDecoration(
+                shape: BoxShape.circle, color: Colors.white.withOpacity(0.3)),
+            child: IconButton(
+                icon: const Icon(Icons.add, color: Colors.white),
+                onPressed: () {}),
           ),
         ],
       ),
@@ -131,8 +145,17 @@ class _DashboardViewState extends State<DashboardView> {
       onTap: () => setState(() => _selectedTabIndex = index),
       child: Column(
         children: [
-          Text(text, style: TextStyle(fontSize: 16, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: Colors.black87)),
-          if (isSelected) Container(margin: const EdgeInsets.only(top: 4), height: 3, width: 40, color: Colors.blue)
+          Text(text,
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: Colors.black87)),
+          if (isSelected)
+            Container(
+                margin: const EdgeInsets.only(top: 4),
+                height: 3,
+                width: 40,
+                color: Colors.blue)
         ],
       ),
     );
@@ -177,19 +200,63 @@ class PostCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFE0E0E0),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 5, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 5,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [Text(username, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), if (time.isNotEmpty) Text(" · $time", style: const TextStyle(color: Colors.grey))]),
-          if (isNews) Padding(padding: const EdgeInsets.only(top: 4), child: Row(children: const [Icon(Icons.local_fire_department, color: Colors.red, size: 16), SizedBox(width: 4), Text("Trending Now", style: TextStyle(fontSize: 12, color: Colors.black54))])),
+          Row(children: [
+            Text(username,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            if (time.isNotEmpty)
+              Text(" · $time", style: const TextStyle(color: Colors.grey))
+          ]),
+          if (isNews)
+            Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Row(children: const [
+                  Icon(Icons.local_fire_department,
+                      color: Colors.red, size: 16),
+                  SizedBox(width: 4),
+                  Text("Trending Now",
+                      style: TextStyle(fontSize: 12, color: Colors.black54))
+                ])),
           const SizedBox(height: 8),
           Text(content, style: const TextStyle(fontSize: 14, height: 1.4)),
           const SizedBox(height: 12),
-          if (imageUrl.isNotEmpty) ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(imageUrl, height: 120, width: double.infinity, fit: BoxFit.cover, errorBuilder: (ctx, err, stack) => Container(height: 120, color: Colors.grey[300]))),
-          if (subContent != null) Container(margin: const EdgeInsets.symmetric(vertical: 10), padding: const EdgeInsets.all(20), width: double.infinity, color: Colors.grey[300], child: Center(child: Text(subContent!))),
-          if (isNews) Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: Row(children: [Text(source ?? "", style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(width: 8), const Icon(Icons.lock_outline, size: 14, color: Colors.grey), Text(" $trustScore", style: const TextStyle(color: Colors.grey))])),
+          if (imageUrl.isNotEmpty)
+            ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(imageUrl,
+                    height: 120,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (ctx, err, stack) =>
+                        Container(height: 120, color: Colors.grey[300]))),
+          if (subContent != null)
+            Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.all(20),
+                width: double.infinity,
+                color: Colors.grey[300],
+                child: Center(child: Text(subContent!))),
+          if (isNews)
+            Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(children: [
+                  Text(source ?? "",
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.lock_outline, size: 14, color: Colors.grey),
+                  Text(" $trustScore",
+                      style: const TextStyle(color: Colors.grey))
+                ])),
           const SizedBox(height: 12),
 
           // Stats Row dengan onTap untuk komentar
@@ -223,16 +290,20 @@ class PostCard extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: onReadTap ?? () {},
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8FA37E)),
-                      child: const Text("Baca", style: TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8FA37E)),
+                      child: const Text("Baca",
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: onShareTap ?? () {},
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC4C46A)),
-                      child: const Text("Share", style: TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFC4C46A)),
+                      child: const Text("Share",
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ),
                 ],
@@ -256,11 +327,48 @@ class CustomBottomNavBar extends StatelessWidget {
             alignment: Alignment.bottomCenter,
             child: Container(
               height: 60,
-              decoration: const BoxDecoration(color: Color(0xFF9FB8C7), border: Border(top: BorderSide(color: Colors.white30)), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)]),
-              child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [const SizedBox(width: 40), IconButton(icon: const Icon(Icons.search, size: 30), onPressed: () {}), IconButton(icon: const Icon(Icons.nightlight_round, size: 30), onPressed: () {}), IconButton(icon: const Icon(Icons.notifications_none, size: 30), onPressed: () {}), IconButton(icon: const Icon(Icons.chat_bubble_outline, size: 30), onPressed: () {})]),
+              decoration: const BoxDecoration(
+                  color: Color(0xFF9FB8C7),
+                  border: Border(top: BorderSide(color: Colors.white30)),
+                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)]),
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    const SizedBox(width: 40),
+                    IconButton(
+                        icon: const Icon(Icons.search, size: 30),
+                        onPressed: () {}),
+                    IconButton(
+                        icon: const Icon(Icons.nightlight_round, size: 30),
+                        onPressed: () {}),
+                    IconButton(
+                        icon: const Icon(Icons.notifications_none, size: 30),
+                        onPressed: () {}),
+                    IconButton(
+                        icon: const Icon(Icons.chat_bubble_outline, size: 30),
+                        onPressed: () {})
+                  ]),
             ),
           ),
-          Positioned(left: 20, bottom: 15, child: Container(height: 60, width: 60, decoration: BoxDecoration(color: Colors.black, shape: BoxShape.circle, border: Border.all(color: const Color(0xFF9FB8C7), width: 4), boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4))]), child: const Icon(Icons.home, color: Colors.white, size: 35))),
+          Positioned(
+              left: 20,
+              bottom: 15,
+              child: Container(
+                  height: 60,
+                  width: 60,
+                  decoration: BoxDecoration(
+                      color: Colors.black,
+                      shape: BoxShape.circle,
+                      border:
+                          Border.all(color: const Color(0xFF9FB8C7), width: 4),
+                      boxShadow: const [
+                        BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 8,
+                            offset: Offset(0, 4))
+                      ]),
+                  child:
+                      const Icon(Icons.home, color: Colors.white, size: 35))),
         ],
       ),
     );

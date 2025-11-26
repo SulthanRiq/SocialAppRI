@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:projek_mobile/features/dashboard/view/dashboard_content_page.dart';
+import 'package:projek_mobile/features/dashboard/view/dashboard_register_page.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -261,10 +261,10 @@ class RegisterPage extends StatelessWidget {
                         onPressed: () {
                           // TODO: aksi sign up
                           Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const DashboardView(),
-                            ),
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const HomePage(),
+                              ),
                           );
                         },
                         style: ElevatedButton.styleFrom(

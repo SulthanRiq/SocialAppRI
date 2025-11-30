@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 // Import TopicFilterBottomSheet
 import 'topic_filter_page.dart'; // Uncomment dan sesuaikan path
 import 'package:projek_mobile/features/inbox/view/inbox_page.dart';
+import '../../dashboard/view/dashboard_register_page.dart';
+import '../../notification/view/notification_page.dart';
+import '../../search/view/search_page.dart';
 
 class FocsCScreen extends StatefulWidget {
   const FocsCScreen({Key? key}) : super(key: key);
@@ -490,14 +493,19 @@ class _FocsCScreenState extends State<FocsCScreen> {
         switch (index) {
           case 0:
             // Home - Kembali ke HomePage
-            Navigator.pop(context);
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const HomePage(),
+                ),
+            );
             break;
           case 1:
             // Search - TODO: Tambahkan navigasi ke SearchScreen
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Search feature coming soon!'),
-                duration: Duration(seconds: 1),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SearchScreen(),
               ),
             );
             break;
@@ -506,11 +514,11 @@ class _FocsCScreenState extends State<FocsCScreen> {
             break;
           case 3:
             // Notifications - TODO: Tambahkan navigasi ke NotificationScreen
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Notifications feature coming soon!'),
-                duration: Duration(seconds: 1),
-              ),
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const NotificationScreen()
+                ),
             );
             break;
           case 4:

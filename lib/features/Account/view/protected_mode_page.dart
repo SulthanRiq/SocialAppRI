@@ -141,7 +141,7 @@ class _ProtectedModePageState extends State<ProtectedModePage> {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const DashboardView(),
+                      builder: (_) => const DashboardViewProtected(),
                     ),
                         (route) => false, // buang stack lama
                   );

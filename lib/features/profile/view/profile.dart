@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projek_mobile/features/login/view/login_page.dart';
 import 'package:projek_mobile/features/settings/view/settings_page.dart'; // Import halaman settings
 import 'package:projek_mobile/features/dashboard/view/dashboard_register_page.dart';
 
@@ -193,10 +194,18 @@ class ProfileMenuPage extends StatelessWidget {
                       subtitle: 'FAQ & Support',
                     ),
                     const SizedBox(height: 12),
-                    const ProfileMenuItem(
+                    ProfileMenuItem(
                       icon: Icons.logout,
                       title: 'Logout',
                       subtitle: '',
+                      onTap: () {
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                            ),
+                        );
+                      },
                     ),
                   ],
                 ),

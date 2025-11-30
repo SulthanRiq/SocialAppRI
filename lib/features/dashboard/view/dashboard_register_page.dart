@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:projek_mobile/features/inbox/view/inbox_page.dart';
 import 'package:projek_mobile/features/profile/view/profile.dart';
 // Import halaman Focs-C yang sudah dibuat
 import 'package:projek_mobile/features/focs/view/focs_page.dart'; // Sesuaikan path ini
+import 'package:projek_mobile/features/notification/view/notification_page.dart';
+import 'package:projek_mobile/features/search/view/search_page.dart';
+import 'package:projek_mobile/features/create_post/view/create_post_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,6 +16,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0; // Index untuk bottom navigation
+  int _selectedTabIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +69,12 @@ class _HomePageState extends State<HomePage> {
                   GestureDetector(
                     onTap: () {
                       // TODO: buat post baru
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const CreatePostScreen(),
+                          ),
+                      );
                     },
                     child: Container(
                       width: 50,
@@ -87,57 +98,24 @@ class _HomePageState extends State<HomePage> {
             Container(
               height: 50,
               color: const Color(0xFFA8B5BC),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   // Tab For You
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.black,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      child: const Text(
-                        'For You',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
+                  _buildTabItem("For You", 0),
 
-                  // Tab Icon (tengah)
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: Image.asset(
-                        'assets/images/social_bear_small.png',
-                        height: 35,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.pets, size: 30);
-                        },
-                      ),
-                    ),
+                  // Icon tengah (beruang atau catching_pokemon)
+                  Image.asset(
+                    'assets/images/social_bear_small.png',
+                    height: 35,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.pets, size: 30);
+                    },
                   ),
 
                   // Tab Following
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Following',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
+                  _buildTabItem("Following", 1),
                 ],
               ),
             ),
@@ -224,7 +202,15 @@ class _HomePageState extends State<HomePage> {
             _buildNavItem(
               icon: Icons.search,
               isSelected: _selectedIndex == 1,
-              onTap: () => setState(() => _selectedIndex = 1),
+              onTap: () {
+                setState(() => _selectedIndex = 1);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SearchScreen(),
+                  ),
+                );
+              },
             ),
 
             // Create / Focs Mode (tombol tengah) - NAVIGASI KE FOCS-C
@@ -247,14 +233,32 @@ class _HomePageState extends State<HomePage> {
             _buildNavItem(
               icon: Icons.notifications,
               isSelected: _selectedIndex == 3,
-              onTap: () => setState(() => _selectedIndex = 3),
+              onTap: () {
+                setState(() => _selectedIndex = 3);
+
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const NotificationScreen(),
+                    ),
+                );
+              }
             ),
 
             // Messages
             _buildNavItem(
               icon: Icons.chat_bubble,
               isSelected: _selectedIndex == 4,
-              onTap: () => setState(() => _selectedIndex = 4),
+              onTap: () {
+                setState(() => _selectedIndex = 4);
+
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const InboxScreen(),
+                    ),
+                );
+              }
             ),
           ],
         ),
@@ -292,6 +296,33 @@ class _HomePageState extends State<HomePage> {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Helper widget untuk tab item (For You / Following)
+  Widget _buildTabItem(String text, int index) {
+    bool isSelected = _selectedTabIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedTabIndex = index),
+      child: Column(
+        children: [
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: Colors.black87,
+            ),
+          ),
+          if (isSelected)
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              height: 3,
+              width: 40,
+              color: Colors.black87,
+            ),
+        ],
       ),
     );
   }

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../dashboard/view/dashboard_register_page.dart';
+import '../../search/view/search_page.dart';
+import '../../focs/view/focs_page.dart';
+import '../../notification/view/notification_page.dart';
 
 class InboxScreen extends StatefulWidget {
   const InboxScreen({Key? key}) : super(key: key);
@@ -39,9 +43,9 @@ class _InboxScreenState extends State<InboxScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFB0BEC5),
+      backgroundColor: const Color(0xFFB8C5CC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF607D8B),
+        backgroundColor: const Color(0xFF6B95A8),
         elevation: 0,
         automaticallyImplyLeading: false,
         title: const Text(
@@ -182,7 +186,7 @@ class _InboxScreenState extends State<InboxScreen> {
     return Container(
       height: 65,
       decoration: BoxDecoration(
-        color: const Color(0xFF607D8B),
+        color: const Color(0xFF6B95A8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -214,33 +218,37 @@ class _InboxScreenState extends State<InboxScreen> {
         switch (index) {
           case 0:
             // Home - Kembali ke HomePage
-            Navigator.pop(context);
-            break;
-          case 1:
-            // Search
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Search feature coming soon!'),
-                duration: Duration(seconds: 1),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomePage(),
               ),
             );
             break;
+          case 1:
+            // Search
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SearchScreen(),
+              ),
+            );
           case 2:
             // Focs Mode
             // TODO: Navigate to FocsCScreen
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Focs Mode'),
-                duration: Duration(seconds: 1),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SearchScreen(),
               ),
             );
             break;
           case 3:
             // Notifications
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Notifications feature coming soon!'),
-                duration: Duration(seconds: 1),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NotificationScreen(),
               ),
             );
             break;

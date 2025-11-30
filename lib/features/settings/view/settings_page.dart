@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projek_mobile/features/privacy/view/privacy_page.dart';
-import 'package:projek_mobile/features/Account/account_page.dart'; // <-- IMPORT BARU
+import 'package:projek_mobile/features/Account/view/account_page.dart'; // <-- IMPORT BARU
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});

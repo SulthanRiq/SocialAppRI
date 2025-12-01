@@ -11,7 +11,7 @@
  
 4. Link Figma : https://www.figma.com/design/qAtSu5qZhVxmbu4ABWaPCU/Rekayasa-Interaksi---Social-Media?node-id=140-4966&p=f&t=vdDHKttzuhbggJ9j-0 
  
-5. Worksheet : 
+5. Worksheet : ![Worksheet](Worksheets/Worksheet.docx)
 
 6. Low Fidelity Prototype :  ![LowFidelity](LowFidelity)
  

@@ -13,7 +13,7 @@
  
 5. Worksheet : 
 
-6. Low Fidelity Prototype : 
+6. Low Fidelity Prototype :  ![LowFidelity](LowFidelity)
  
 7. Tabel pembagian BackLog : ![TabelBackLog](assets/images/TabelBackLog.png)
  

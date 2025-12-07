@@ -15,8 +15,11 @@ class CommentController extends GetxController {
     try {
       isLoading.value = true;
       currentArticleId.value = articleId;
+      print('🔍 Loading comments for article: "$articleId"');
       comments.value = await _repository.getCommentsByArticleId(articleId);
+      print('📝 Comments loaded: ${comments.length}');
     } catch (e) {
+      print('❌ Error loading comments: $e');
       Get.snackbar(
         'Error',
         'Gagal memuat komentar',
@@ -67,15 +70,9 @@ class CommentController extends GetxController {
 
   Future<void> likeComment(String commentId) async {
     try {
-      final success = await _repository.likeComment(commentId);
-      if (success) {
-        final index = comments.indexWhere((c) => c.id == commentId);
-        if (index != -1) {
-          comments[index] = comments[index].copyWith(
-            likes: comments[index].likes + 1,
-          );
-          comments.refresh();
-        }
+      final success = await _repository.likeComment(currentArticleId.value, commentId);
+      if (success && currentArticleId.value.isNotEmpty) {
+        await loadComments(currentArticleId.value);
       }
     } catch (e) {
       print('Error liking comment: $e');

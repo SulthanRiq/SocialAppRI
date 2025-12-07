@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projek_mobile/features/dashboard/view/share_result_view.dart';
+import 'package:projek_mobile/features/dashboard/view/article_detail_view.dart';
 
 class ShareView extends StatefulWidget {
   final dynamic article;
@@ -13,6 +14,42 @@ class ShareView extends StatefulWidget {
 class _ShareViewState extends State<ShareView> {
   int? _readStatusValue;
   int? _understandStatusValue;
+
+  /// --------------------------------------------
+  /// FUNGSI DIPANGGIL SAAT TOMBOL SHARE DITEKAN
+  /// --------------------------------------------
+  void _shareToSocialMedia() {
+    String quizScore = _calculateQuizScore();
+    String status = _getReaderStatus();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ShareResultView(
+          quizScore: quizScore,
+          readingTime: '3m 15s',
+          status: status,
+          articleTitle: widget.article['title'] ?? 'Artikel Tidak Diketahui',
+          source: widget.article['source'] ?? 'Sumber Tidak Diketahui',
+          verifiedBy: 'Budi',
+        ),
+      ),
+    );
+  }
+
+  /// --------------------------------------------
+  /// FUNGSI UNTUK MEMBUKA ARTIKEL LENGKAP
+  /// --------------------------------------------
+  void _openFullArticle() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ArticleDetailView(
+          article: widget.article,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +86,8 @@ class _ShareViewState extends State<ShareView> {
                 ],
               ),
             ),
+
+            // --- TIDAK MENGUBAH UI ---
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20.0),
@@ -77,6 +116,8 @@ class _ShareViewState extends State<ShareView> {
                       ],
                     ),
                     const SizedBox(height: 10),
+
+                    // ANALISIS
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
@@ -107,7 +148,9 @@ class _ShareViewState extends State<ShareView> {
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 24),
+
                     const Row(
                       children: [
                         Icon(Icons.checklist_rtl, size: 24),
@@ -115,50 +158,53 @@ class _ShareViewState extends State<ShareView> {
                         Text("VERIFIKASI PEMAHAMAN", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       ],
                     ),
+
                     const SizedBox(height: 12),
                     const Text("Sudah baca artikelnya?", style: TextStyle(fontSize: 16)),
                     const SizedBox(height: 8),
+
                     Container(
                       decoration: BoxDecoration(color: const Color(0xFFD9D9D9), borderRadius: BorderRadius.circular(12)),
                       child: Column(
                         children: [
-                          _buildRadioOption(1, "Ya, baca semua", _readStatusValue, (val) => setState(() => _readStatusValue = val)),
-                          _buildRadioOption(2, "Belum, baru judul", _readStatusValue, (val) => setState(() => _readStatusValue = val)),
-                          _buildRadioOption(3, "Sebagian", _readStatusValue, (val) => setState(() => _readStatusValue = val)),
+                          _buildRadioOption(1, "Ya, baca semua", _readStatusValue, (v) => setState(() => _readStatusValue = v)),
+                          _buildRadioOption(2, "Belum, baru judul", _readStatusValue, (v) => setState(() => _readStatusValue = v)),
+                          _buildRadioOption(3, "Sebagian", _readStatusValue, (v) => setState(() => _readStatusValue = v)),
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 16),
                     const Text("Seberapa pemahaman kamu?", style: TextStyle(fontSize: 16)),
                     const SizedBox(height: 8),
+
                     Container(
                       decoration: BoxDecoration(color: const Color(0xFFD9D9D9), borderRadius: BorderRadius.circular(12)),
                       child: Column(
                         children: [
-                          _buildRadioOption(1, "100%", _understandStatusValue, (val) => setState(() => _understandStatusValue = val)),
-                          _buildRadioOption(2, "50%", _understandStatusValue, (val) => setState(() => _understandStatusValue = val)),
-                          _buildRadioOption(3, "Lainnya", _understandStatusValue, (val) => setState(() => _understandStatusValue = val)),
+                          _buildRadioOption(1, "100%", _understandStatusValue, (v) => setState(() => _understandStatusValue = v)),
+                          _buildRadioOption(2, "50%", _understandStatusValue, (v) => setState(() => _understandStatusValue = v)),
+                          _buildRadioOption(3, "Lainnya", _understandStatusValue, (v) => setState(() => _understandStatusValue = v)),
                         ],
                       ),
                     ),
+
                     const Divider(thickness: 2, color: Colors.black54, height: 40),
+
                     const Center(
                       child: Text(
                         "PILIH TINDAKAN",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
+
                     const SizedBox(height: 12),
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         GestureDetector(
-                          onTap: () {
-                            Navigator.popUntil(context, (route) => route.isFirst);
-                          },
+                          onTap: () => Navigator.popUntil(context, (route) => route.isFirst),
                           child: const Text(
                             "KEMBALI KE DASHBOARD",
                             style: TextStyle(
@@ -169,7 +215,7 @@ class _ShareViewState extends State<ShareView> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: _openFullArticle,
                           child: const Text(
                             "BACA ARTIKEL LENGKAP",
                             style: TextStyle(
@@ -181,30 +227,15 @@ class _ShareViewState extends State<ShareView> {
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 20),
+
                     Center(
                       child: SizedBox(
                         width: 150,
                         height: 45,
                         child: ElevatedButton(
-                          onPressed: () {
-                            String quizScore = _calculateQuizScore();
-                            String status = _getReaderStatus();
-
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ShareResultView(
-                                  quizScore: quizScore,
-                                  readingTime: '3m 15s',
-                                  status: status,
-                                  articleTitle: '"Politisi X Korupsi..."',
-                                  source: 'detik.com',
-                                  verifiedBy: 'Budi',
-                                ),
-                              ),
-                            );
-                          },
+                          onPressed: _shareToSocialMedia,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF8FA37E),
                             foregroundColor: Colors.white,
@@ -214,6 +245,7 @@ class _ShareViewState extends State<ShareView> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -225,6 +257,9 @@ class _ShareViewState extends State<ShareView> {
     );
   }
 
+  // ---------------------------------------
+  // LOGIC QUIZ
+  // ---------------------------------------
   String _calculateQuizScore() {
     int score = 0;
     if (_readStatusValue == 1) score++;
@@ -242,6 +277,9 @@ class _ShareViewState extends State<ShareView> {
     }
   }
 
+  // ---------------------------------------
+  // UI COMPONENT
+  // ---------------------------------------
   Widget _buildAnalysisItem(IconData icon, String title, String stat, String desc) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,10 +292,11 @@ class _ShareViewState extends State<ShareView> {
             children: [
               RichText(
                 text: TextSpan(
-                  style: const TextStyle(color: Colors.black, fontFamily: 'sans-serif'),
+                  style: const TextStyle(color: Colors.black),
                   children: [
-                    TextSpan(text: title, style: const TextStyle(fontWeight: FontWeight.w500)),
-                    if (stat.isNotEmpty) TextSpan(text: "\n$stat", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    TextSpan(text: title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    if (stat.isNotEmpty)
+                      TextSpan(text: "\n$stat", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),

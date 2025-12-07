@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-// Import widget yang sudah dibuat
 import 'package:projek_mobile/common/widgets/custom_bottom_navbar.dart';
 import 'package:projek_mobile/common/widgets/post_card_widget.dart';
-
-// Import halaman-halaman yang diperlukan (sesuaikan dengan path project Anda)
 import 'package:projek_mobile/features/profile/view/profile.dart';
 import 'package:projek_mobile/features/focs/view/focs_page.dart';
 import 'package:projek_mobile/features/dashboard/view/share_view.dart';
@@ -23,230 +20,293 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
-  int _selectedIndex = 0; // Index untuk bottom navigation
-  int _selectedTabIndex = 0; // Index untuk tab (For You / Following)
+  int _selectedIndex = 0;
+  int _selectedTabIndex = 0;
+  late final List<Map<String, dynamic>> _posts;
+
+  @override
+  void initState() {
+    super.initState();
+    _posts = _buildPostsData();
+  }
+
+  List<Map<String, dynamic>> _buildPostsData() {
+    return [
+      {
+        'type': 'health',
+        'username': '@lifestyle_daily',
+        'content': 'Tips hidup sehat...',
+        'imageUrl': 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80',
+        'likes': '20.5k',
+        'comments': '2k',
+        'shares': '12',
+        'isNews': false,
+        'articleId': 'health_1',
+      },
+      {
+        'type': 'politics',
+        'username': '@Breaking_News',
+        'time': '15m',
+        'content': 'Trending Now\n\n"POLITISI X KORUPSI TRILIUNAN RUPIAH !\nBukti Mengejutkan ! "',
+        'subContent': '[Breaking News Image]',
+        'source': 'detik.com',
+        'trustScore': 'Trust: 7.5/10',
+        'likes': '150.2k',
+        'comments': '21,4 k',
+        'shares': '',
+        'isNews': true,
+        'articleId': 'politics_1',
+      },
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
-    final Color topBarColor = const Color(0xFF6B95A8); // biru abu-abu
-    final Color bgColor = const Color(0xFFB8C5CC); // abu-abu terang
+    const Color topBarColor = Color(0xFF6B95A8);
+    const Color bgColor = Color(0xFFB8C5CC);
 
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
         child: Column(
           children: [
-            // TOP BAR dengan foto profil dan tombol add
-            Container(
-              height: 70,
-              width: double.infinity,
-              color: topBarColor,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Foto profil (kiri)
-                  GestureDetector(
-                    onTap: () {
-                      // Navigasi ke Profile Menu
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ProfileMenuPage(),
-                        ),
-                      );
-                    },
-                    child: const CircleAvatar(
-                      radius: 26,
-                      backgroundColor: Colors.white,
-                      backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
-                      // Atau gunakan AssetImage jika ada asset lokal
-                      // backgroundImage: AssetImage('assets/images/profile.png'),
-                    ),
-                  ),
-
-                  // Tombol add (kanan)
-                  GestureDetector(
-                    onTap: () {
-                      // TODO: buat post baru
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CreatePostScreen(),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.3),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                  ),
-                ],
+            _TopBar(
+              topBarColor: topBarColor,
+              onProfileTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileMenuPage()),
+              ),
+              onAddTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CreatePostScreen()),
               ),
             ),
-
-            // TAB BAR (For You, Icon, Following)
-            Container(
-              height: 50,
-              color: const Color(0xFFA8B5BC),
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Tab For You
-                  _buildTabItem("For You", 0),
-
-                  // Icon tengah (beruang atau catching_pokemon)
-                  Image.asset(
-                    'assets/images/social_bear_small.png',
-                    height: 35,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(Icons.pets, size: 30);
-                    },
-                  ),
-
-                  // Tab Following
-                  _buildTabItem("Following", 1),
-                ],
-              ),
+            _TabBar(
+              selectedTabIndex: _selectedTabIndex,
+              onTabChanged: (index) => setState(() => _selectedTabIndex = index),
             ),
-
-            // CONTENT AREA dengan Posts
             Expanded(
-              child: ListView(
+              child: ListView.separated(
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
-                children: [
-                  // POST 1: Health/Lifestyle
-                  PostCard(
-                    avatarColor: Colors.transparent,
-                    username: "@lifestyle_daily",
-                    content: "Tips hidup sehat...",
-                    imageUrl:
-                    "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80",
-                    likes: "20.5k",
-                    comments: "2k",
-                    shares: "12",
-                    isNews: false,
-                    onCommentTap: () {
-                      // Navigasi ke Health Comment View
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HealthCommentView(),
-                        ),
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // POST 2: Breaking News
-                  PostCard(
-                    avatarColor: Colors.transparent,
-                    username: "@Breaking_News",
-                    time: "15m",
-                    content:
-                    'Trending Now\n\n"POLITISI X KORUPSI TRILIUNAN RUPIAH !\nBukti Mengejutkan ! "',
-                    subContent: "[Breaking News Image]",
-                    source: "detik.com",
-                    trustScore: "Trust: 7.5/10",
-                    likes: "150.2k",
-                    comments: "21,4 k",
-                    shares: "",
-                    isNews: true,
-                    onReadTap: () {
-                      // Navigasi ke Article Detail
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ArticleDetailView(),
-                        ),
-                      );
-                    },
-                    onShareTap: () {
-                      // Navigasi ke Share View
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ShareView(),
-                        ),
-                      );
-                    },
-                    onCommentTap: () {
-                      // Navigasi ke Politics Comment View
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PoliticsCommentView(),
-                        ),
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 20),
-                ],
+                itemCount: _posts.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 20),
+                itemBuilder: (context, index) {
+                  final post = _posts[index];
+                  return _buildPostCard(context, post);
+                },
               ),
             ),
           ],
         ),
       ),
-
-      // BOTTOM NAVIGATION BAR (menggunakan custom widget)
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: _selectedIndex,
-        onItemTapped: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SearchScreen(),
-              ),
-            );
-          } else if (index == 2) {
-            // Navigasi ke halaman Focs-C
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const FocsCScreen(),
-              ),
-            );
-          } else if (index == 3) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const NotificationScreen(),
-              ),
-            );
-          } else if (index == 4) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const InboxScreen(),
-              ),
-            );
-          }
-        },
+        onItemTapped: _handleNavigation,
       ),
     );
   }
 
-  // Helper widget untuk tab item (For You / Following)
-  Widget _buildTabItem(String text, int index) {
-    bool isSelected = _selectedTabIndex == index;
+  void _handleNavigation(int index) {
+    setState(() => _selectedIndex = index);
+
+    final routes = {
+      1: () => const SearchScreen(),
+      2: () => const FocsCScreen(),
+      3: () => const NotificationScreen(),
+      4: () => const InboxScreen(),
+    };
+
+    final route = routes[index];
+    if (route != null) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => route()));
+    }
+  }
+
+  Widget _buildPostCard(BuildContext context, Map<String, dynamic> post) {
+    if (post['type'] == 'health') {
+      return PostCard(
+        avatarColor: Colors.transparent,
+        username: post['username'],
+        content: post['content'],
+        imageUrl: post['imageUrl'],
+        likes: post['likes'],
+        comments: post['comments'],
+        shares: post['shares'],
+        isNews: post['isNews'],
+        onCommentTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HealthCommentView(articleId: post['articleId']),
+          ),
+        ),
+        onShareTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ShareView(
+              article: {
+                'id': post['articleId'],
+                'title': 'Tips Hidup Sehat: 5 Kebiasaan yang Wajib Diterapkan',
+                'source': post['username'],
+                'content': 'Menerapkan gaya hidup sehat sangat penting untuk kesejahteraan jangka panjang. Berikut adalah 5 kebiasaan sederhana yang dapat Anda terapkan setiap hari untuk meningkatkan kualitas hidup Anda.',
+              },
+            ),
+          ),
+        ),
+      );
+    } else {
+      return PostCard(
+        avatarColor: Colors.transparent,
+        username: post['username'],
+        time: post['time'],
+        content: post['content'],
+        subContent: post['subContent'],
+        source: post['source'],
+        trustScore: post['trustScore'],
+        likes: post['likes'],
+        comments: post['comments'],
+        shares: post['shares'],
+        isNews: post['isNews'],
+        onReadTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ArticleDetailView(
+              article: {
+                'id': post['articleId'],
+                'title': 'POLITISI X KORUPSI TRILIUNAN RUPIAH !',
+                'source': post['source'],
+                'content': 'Bukti mengejutkan telah ditemukan terkait kasus korupsi yang melibatkan politisi ternama. Investigasi mendalam mengungkap skema korupsi yang merugikan negara triliunan rupiah. Aparat penegak hukum telah mengamankan berbagai barang bukti dan dokumen penting yang terkait dengan kasus ini.',
+                'imageUrl': 'https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1',
+                'publishedAt': post['time'],
+                'trustScore': post['trustScore'],
+              },
+            ),
+          ),
+        ),
+        onShareTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ShareView(
+              article: {
+                'id': post['articleId'],
+                'title': 'POLITISI X KORUPSI TRILIUNAN RUPIAH !',
+                'source': post['source'],
+                'content': 'Bukti mengejutkan...',
+              },
+            ),
+          ),
+        ),
+        onCommentTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PoliticsCommentView(articleId: post['articleId']),
+          ),
+        ),
+      );
+    }
+  }
+}
+
+class _TopBar extends StatelessWidget {
+  final Color topBarColor;
+  final VoidCallback onProfileTap;
+  final VoidCallback onAddTap;
+
+  const _TopBar({
+    required this.topBarColor,
+    required this.onProfileTap,
+    required this.onAddTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 70,
+      width: double.infinity,
+      color: topBarColor,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: onProfileTap,
+            child: const CircleAvatar(
+              radius: 26,
+              backgroundColor: Colors.white,
+              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+            ),
+          ),
+          GestureDetector(
+            onTap: onAddTap,
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.3),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 30),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TabBar extends StatelessWidget {
+  final int selectedTabIndex;
+  final ValueChanged<int> onTabChanged;
+
+  const _TabBar({
+    required this.selectedTabIndex,
+    required this.onTabChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 50,
+      color: const Color(0xFFA8B5BC),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _TabItem(
+            text: 'For You',
+            isSelected: selectedTabIndex == 0,
+            onTap: () => onTabChanged(0),
+          ),
+          Image.asset(
+            'assets/images/social_bear_small.png',
+            height: 35,
+            errorBuilder: (_, __, ___) => const Icon(Icons.pets, size: 30),
+          ),
+          _TabItem(
+            text: 'Following',
+            isSelected: selectedTabIndex == 1,
+            onTap: () => onTabChanged(1),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TabItem extends StatelessWidget {
+  final String text;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _TabItem({
+    required this.text,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => setState(() => _selectedTabIndex = index),
+      onTap: onTap,
       child: Column(
         children: [
           Text(

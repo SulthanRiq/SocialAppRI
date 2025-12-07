@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:projek_mobile/core/controllers/article_controller.dart';
 import 'package:projek_mobile/features/dashboard/view/share_view.dart';
 import 'package:projek_mobile/features/dashboard/view/article_detail_view.dart';
 import 'package:projek_mobile/features/dashboard/view/health_comment_view.dart';
@@ -16,6 +18,8 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   Widget build(BuildContext context) {
+    final ArticleController controller = Get.find();
+
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -26,70 +30,104 @@ class _DashboardViewState extends State<DashboardView> {
                 _buildTopBar(),
                 _buildTabBar(),
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
-                    children: [
-                      PostCard(
-                        avatarColor: Colors.transparent,
-                        username: "@lifestyle_daily",
-                        content: "Tips hidup sehat...",
-                        imageUrl: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80",
-                        likes: "20.5k",
-                        comments: "2k",
-                        shares: "12",
-                        isNews: false,
-                        onCommentTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const HealthCommentView()),
+                  child: Obx(() {
+                    if (controller.isLoading.value) {
+                      return Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF6B95A8),
+                        ),
+                      );
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: () => controller.refreshArticles(),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+                        itemCount: controller.articles.length,
+                        itemBuilder: (context, index) {
+                          final article = controller.articles[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: PostCard(
+                              avatarColor: Colors.transparent,
+                              username: article.username,
+                              time: article.time,
+                              content: article.content,
+                              imageUrl: article.imageUrl ?? "",
+                              likes: _formatNumber(article.likes),
+                              comments: _formatNumber(article.comments),
+                              shares: article.shares > 0 ? _formatNumber(article.shares) : "",
+                              isNews: article.isNews,
+                              source: article.source,
+                              trustScore: article.trustScore,
+                              onCommentTap: () {
+                                if (article.isNews) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PoliticsCommentView(articleId: article.id),
+                                    ),
+                                  );
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => HealthCommentView(articleId: article.id),
+                                    ),
+                                  );
+                                }
+                              },
+                              onReadTap: article.isNews
+                                  ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ArticleDetailView(article: article),
+                                  ),
+                                );
+                              }
+                                  : null,
+                              onShareTap: article.isNews
+                                  ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ShareView(article: article),
+                                  ),
+                                );
+                              }
+                                  : null,
+                              onLikeTap: () {
+                                controller.likeArticle(article.id);
+                              },
+                            ),
                           );
                         },
                       ),
-                      const SizedBox(height: 20),
-                      PostCard(
-                        avatarColor: Colors.transparent,
-                        username: "@Breaking_News",
-                        time: "15m",
-                        content: 'Trending Now\n\n"POLITISI X KORUPSI TRILIUNAN RUPIAH !\nBukti Mengejutkan ! "',
-                        subContent: "[Breaking News Image]",
-                        source: "detik.com",
-                        trustScore: "Trust: 7.5/10",
-                        likes: "150.2k",
-                        comments: "21,4 k",
-                        shares: "",
-                        isNews: true,
-                        onReadTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ArticleDetailView()),
-                          );
-                        },
-                        onShareTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ShareView()),
-                          );
-                        },
-                        onCommentTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const PoliticsCommentView()),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                    );
+                  }),
                 ),
               ],
             ),
             const Positioned(
-              bottom: 0, left: 0, right: 0,
+              bottom: 0,
+              left: 0,
+              right: 0,
               child: CustomBottomNavBar(),
             ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatNumber(int number) {
+    if (number >= 1000000) {
+      return '${(number / 1000000).toStringAsFixed(1)}M';
+    } else if (number >= 1000) {
+      return '${(number / 1000).toStringAsFixed(1)}k';
+    }
+    return number.toString();
   }
 
   Widget _buildTopBar() {
@@ -150,6 +188,7 @@ class PostCard extends StatelessWidget {
   final VoidCallback? onReadTap;
   final VoidCallback? onShareTap;
   final VoidCallback? onCommentTap;
+  final VoidCallback? onLikeTap;
 
   const PostCard({
     super.key,
@@ -168,6 +207,7 @@ class PostCard extends StatelessWidget {
     this.onReadTap,
     this.onShareTap,
     this.onCommentTap,
+    this.onLikeTap,
   });
 
   @override
@@ -192,14 +232,21 @@ class PostCard extends StatelessWidget {
           if (isNews) Padding(padding: const EdgeInsets.symmetric(vertical: 8.0), child: Row(children: [Text(source ?? "", style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(width: 8), const Icon(Icons.lock_outline, size: 14, color: Colors.grey), Text(" $trustScore", style: const TextStyle(color: Colors.grey))])),
           const SizedBox(height: 12),
 
-          // Stats Row dengan onTap untuk komentar
+          // Stats Row dengan onTap untuk komentar dan like
           GestureDetector(
             onTap: onCommentTap,
             child: Row(
               children: [
-                const Icon(Icons.favorite, size: 20),
-                const SizedBox(width: 4),
-                Text(likes),
+                GestureDetector(
+                  onTap: onLikeTap,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.favorite, size: 20, color: Colors.red),
+                      const SizedBox(width: 4),
+                      Text(likes),
+                    ],
+                  ),
+                ),
                 const SizedBox(width: 20),
                 const Icon(Icons.mode_comment_outlined, size: 20),
                 const SizedBox(width: 4),

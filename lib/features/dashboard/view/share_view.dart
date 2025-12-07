@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:projek_mobile/features/dashboard/view/share_result_view.dart';
 
 class ShareView extends StatefulWidget {
-  const ShareView({super.key});
+  final dynamic article;
+
+  const ShareView({super.key, required this.article});
 
   @override
   State<ShareView> createState() => _ShareViewState();
@@ -19,7 +21,6 @@ class _ShareViewState extends State<ShareView> {
       body: SafeArea(
         child: Column(
           children: [
-            // HEADER
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               color: const Color(0xFF60859A),
@@ -48,8 +49,6 @@ class _ShareViewState extends State<ShareView> {
                 ],
               ),
             ),
-
-            // CONTENT
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20.0),
@@ -70,8 +69,6 @@ class _ShareViewState extends State<ShareView> {
                       ),
                     ),
                     const Divider(thickness: 2, color: Colors.black54, height: 30),
-
-                    // ANALISIS
                     const Row(
                       children: [
                         Icon(Icons.psychology, size: 24),
@@ -110,10 +107,7 @@ class _ShareViewState extends State<ShareView> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
-                    // VERIFIKASI
                     const Row(
                       children: [
                         Icon(Icons.checklist_rtl, size: 24),
@@ -122,7 +116,6 @@ class _ShareViewState extends State<ShareView> {
                       ],
                     ),
                     const SizedBox(height: 12),
-
                     const Text("Sudah baca artikelnya?", style: TextStyle(fontSize: 16)),
                     const SizedBox(height: 8),
                     Container(
@@ -135,7 +128,6 @@ class _ShareViewState extends State<ShareView> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 16),
                     const Text("Seberapa pemahaman kamu?", style: TextStyle(fontSize: 16)),
                     const SizedBox(height: 8),
@@ -149,10 +141,7 @@ class _ShareViewState extends State<ShareView> {
                         ],
                       ),
                     ),
-
                     const Divider(thickness: 2, color: Colors.black54, height: 40),
-
-                    // PILIH TINDAKAN
                     const Center(
                       child: Text(
                         "PILIH TINDAKAN",
@@ -163,8 +152,6 @@ class _ShareViewState extends State<ShareView> {
                       ),
                     ),
                     const SizedBox(height: 12),
-
-                    // Link pilihan
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -182,9 +169,7 @@ class _ShareViewState extends State<ShareView> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {
-                            // TODO: Buka artikel lengkap
-                          },
+                          onTap: () {},
                           child: const Text(
                             "BACA ARTIKEL LENGKAP",
                             style: TextStyle(
@@ -196,21 +181,16 @@ class _ShareViewState extends State<ShareView> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 20),
-
-                    // BUTTON SHARE - NAVIGASI KE SHARE RESULT VIEW
                     Center(
                       child: SizedBox(
                         width: 150,
                         height: 45,
                         child: ElevatedButton(
                           onPressed: () {
-                            // Hitung score dan status
                             String quizScore = _calculateQuizScore();
                             String status = _getReaderStatus();
 
-                            // Navigasi ke ShareResultView dengan data
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -245,15 +225,13 @@ class _ShareViewState extends State<ShareView> {
     );
   }
 
-  // Hitung quiz score berdasarkan jawaban
   String _calculateQuizScore() {
     int score = 0;
-    if (_readStatusValue == 1) score++; // Ya, baca semua
-    if (_understandStatusValue == 1) score++; // 100%
+    if (_readStatusValue == 1) score++;
+    if (_understandStatusValue == 1) score++;
     return '$score/2';
   }
 
-  // Tentukan status reader
   String _getReaderStatus() {
     if (_readStatusValue == 1 && _understandStatusValue == 1) {
       return 'Informed Reader';

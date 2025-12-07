@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ShareResultView extends StatefulWidget {
   final String quizScore;
@@ -45,7 +46,6 @@ class _ShareResultViewState extends State<ShareResultView> {
       body: SafeArea(
         child: Column(
           children: [
-            // HEADER
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               color: const Color(0xFF60859A),
@@ -76,15 +76,12 @@ class _ShareResultViewState extends State<ShareResultView> {
                 ],
               ),
             ),
-
-            // CONTENT
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // VERIFIKASI BERHASIL
                     const Row(
                       children: [
                         Icon(Icons.check_box, color: Colors.black87, size: 24),
@@ -99,8 +96,6 @@ class _ShareResultViewState extends State<ShareResultView> {
                       ],
                     ),
                     const SizedBox(height: 16),
-
-                    // Card Quiz Info
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
@@ -128,12 +123,9 @@ class _ShareResultViewState extends State<ShareResultView> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 16),
                     const Divider(color: Colors.black38, thickness: 1),
                     const SizedBox(height: 16),
-
-                    // POST PREVIEW
                     const Row(
                       children: [
                         Icon(Icons.description_outlined, color: Colors.black87, size: 22),
@@ -148,8 +140,6 @@ class _ShareResultViewState extends State<ShareResultView> {
                       ],
                     ),
                     const SizedBox(height: 12),
-
-                    // Card Post Preview
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
@@ -177,10 +167,7 @@ class _ShareResultViewState extends State<ShareResultView> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
-                    // SMART SUGGESTIONS
                     const Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -207,8 +194,6 @@ class _ShareResultViewState extends State<ShareResultView> {
                       ],
                     ),
                     const SizedBox(height: 12),
-
-                    // Checkbox List
                     ...List.generate(_suggestions.length, (index) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
@@ -240,10 +225,7 @@ class _ShareResultViewState extends State<ShareResultView> {
                         ),
                       );
                     }),
-
                     const SizedBox(height: 20),
-
-                    // Caption Tambahan
                     const Text(
                       'Tulis caption tambahan :',
                       style: TextStyle(
@@ -252,8 +234,6 @@ class _ShareResultViewState extends State<ShareResultView> {
                       ),
                     ),
                     const SizedBox(height: 10),
-
-                    // TextField
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -271,10 +251,7 @@ class _ShareResultViewState extends State<ShareResultView> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
-                    // Tombol Share
                     Center(
                       child: SizedBox(
                         width: 180,
@@ -296,10 +273,7 @@ class _ShareResultViewState extends State<ShareResultView> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 40),
-
-                    // Bottom Indicator
                     Center(
                       child: Container(
                         width: 120,
@@ -321,14 +295,103 @@ class _ShareResultViewState extends State<ShareResultView> {
   }
 
   void _handleShare() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Berhasil di-share!'),
-        backgroundColor: Color(0xFF8FA37E),
+    String shareText = '${widget.articleTitle}\n${widget.source}\n\n';
+    shareText += '✓ Verifikasi Saya:\n';
+    shareText += '✓ Status: ${widget.status}\n';
+    shareText += '✓ Skor Quiz: ${widget.quizScore}\n';
+    shareText += '✓ Waktu Baca: ${widget.readingTime}\n\n';
+
+    for (int i = 0; i < _selectedSuggestions.length; i++) {
+      if (_selectedSuggestions[i]) {
+        shareText += '${_suggestions[i]}\n';
+      }
+    }
+
+    if (_captionController.text.isNotEmpty) {
+      shareText += '\n${_captionController.text}';
+    }
+
+    _showShareBottomSheet(shareText);
+  }
+
+  void _showShareBottomSheet(String text) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Color(0xFFD9D9D9),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildShareButton(
+                  ctx: ctx,
+                  icon: Icons.chat,
+                  label: 'WhatsApp',
+                  color: const Color(0xFF25D366),
+                  text: text,
+                ),
+                _buildShareButton(
+                  ctx: ctx,
+                  icon: Icons.facebook,
+                  label: 'Facebook',
+                  color: const Color(0xFF1877F2),
+                  text: text,
+                ),
+                _buildShareButton(
+                  ctx: ctx,
+                  icon: Icons.send,
+                  label: 'Telegram',
+                  color: const Color(0xFF0088CC),
+                  text: text,
+                ),
+                _buildShareButton(
+                  ctx: ctx,
+                  icon: Icons.more_horiz,
+                  label: 'More',
+                  color: Colors.grey,
+                  text: text,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
+  }
 
-    // Kembali ke dashboard
-    Navigator.popUntil(context, (route) => route.isFirst);
+  Widget _buildShareButton({
+    required BuildContext ctx,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required String text,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(ctx);
+        Share.share(text);
+      },
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: color,
+            child: Icon(icon, color: Colors.white, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ],
+      ),
+    );
   }
 }

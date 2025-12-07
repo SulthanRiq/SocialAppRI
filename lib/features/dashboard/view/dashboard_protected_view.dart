@@ -69,7 +69,13 @@ class _DashboardViewProtectedState extends State<DashboardViewProtected> {
                   // Tombol add (kanan)
                   GestureDetector(
                     onTap: () {
-                      // TODO: buat post baru
+                      // Navigasi ke Create Post
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CreatePostScreen(),
+                        ),
+                      );
                     },
                     child: Container(
                       width: 50,
@@ -140,11 +146,13 @@ class _DashboardViewProtectedState extends State<DashboardViewProtected> {
                     shares: "12",
                     isNews: false,
                     onCommentTap: () {
-                      // Navigasi ke Health Comment View
+                      // Navigasi ke Health Comment View dengan articleId
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const HealthCommentView(),
+                          builder: (context) => const HealthCommentView(
+                            articleId: 'fitness_1',
+                          ),
                         ),
                       );
                     },

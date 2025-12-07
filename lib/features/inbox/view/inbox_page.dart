@@ -239,7 +239,7 @@ class _InboxScreenState extends State<InboxScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const SearchScreen(),
+                builder: (context) => const FocsCScreen(),
               ),
             );
             break;

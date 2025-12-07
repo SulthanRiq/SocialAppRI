@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 // Import TopicFilterBottomSheet
 import 'topic_filter_page.dart'; // Uncomment dan sesuaikan path
+import 'package:projek_mobile/features/inbox/view/inbox_page.dart';
+import '../../dashboard/view/dashboard_register_page.dart';
+import '../../notification/view/notification_page.dart';
+import '../../search/view/search_page.dart';
 
 class FocsCScreen extends StatefulWidget {
   const FocsCScreen({Key? key}) : super(key: key);
@@ -482,15 +486,49 @@ class _FocsCScreenState extends State<FocsCScreen> {
   Widget _buildNavItem(IconData icon, bool isActive, int index) {
     return GestureDetector(
       onTap: () {
+        // Jangan navigate jika sudah di halaman yang aktif
+        if (isActive) return;
+
         // Navigasi sesuai index
-        if (index == 0) {
-          // Kembali ke Home
-          Navigator.pop(context);
-        } else if (index == 4) {
-          // Navigasi ke Inbox (jika sudah dibuat)
-          // Navigator.push(context, MaterialPageRoute(builder: (context) => InboxScreen()));
+        switch (index) {
+          case 0:
+            // Home - Kembali ke HomePage
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const HomePage(),
+                ),
+            );
+            break;
+          case 1:
+            // Search - TODO: Tambahkan navigasi ke SearchScreen
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SearchScreen(),
+              ),
+            );
+            break;
+          case 2:
+            // Focs Mode - Sudah di halaman ini
+            break;
+          case 3:
+            // Notifications - TODO: Tambahkan navigasi ke NotificationScreen
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const NotificationScreen()
+                ),
+            );
+            break;
+          case 4:
+            // Messages - Navigasi ke InboxScreen
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const InboxScreen()),
+            );
+            break;
         }
-        // Tambahkan navigasi lain sesuai kebutuhan
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),

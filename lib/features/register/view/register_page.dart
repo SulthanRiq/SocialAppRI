@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:projek_mobile/features/dashboard/view/dashboard_content_page.dart';
+import 'package:projek_mobile/features/dashboard/view/dashboard_register_page.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -7,7 +7,7 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color topBarColor = const Color(0xFF0F9D7E); // hijau tosca
-    final Color bgColor = const Color(0xFF82AFC3);     // biru muda
+    final Color bgColor = const Color(0xFF82AFC3); // biru muda
     final Color buttonYellow = const Color(0xFFE8B44C); // kuning tombol
 
     return Scaffold(
@@ -263,7 +263,7 @@ class RegisterPage extends StatelessWidget {
                           Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const DashboardView(),
+                                  builder: (context) => const HomePage(),
                               ),
                           );
                         },

@@ -1,25 +1,7 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Profile Me',
-      theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFFD1DEE4), // warna abu kebiruan
-        fontFamily: 'Roboto',
-      ),
-      home: const ProfileMenuPage(),
-    );
-  }
-}
+import 'package:projek_mobile/features/login/view/login_page.dart';
+import 'package:projek_mobile/features/settings/view/settings_page.dart'; // Import halaman settings
+import 'package:projek_mobile/features/dashboard/view/dashboard_register_page.dart';
 
 class ProfileMenuPage extends StatelessWidget {
   const ProfileMenuPage({super.key});
@@ -34,30 +16,41 @@ class ProfileMenuPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // TOP BAR
+            // TOP BAR dengan fungsi back
             Container(
               color: topBarColor,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               width: double.infinity,
-              child: Row(
-                children: const [
-                  Icon(Icons.arrow_back, color: Colors.white),
-                  SizedBox(width: 6),
-                  Text(
-                    'Back',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  )
-                ],
+              child: GestureDetector(
+                onTap: () {
+                  // Kembali ke halaman sebelumnya
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const HomePage()
+                      ),
+                  );
+                },
+                child: Row(
+                  children: const [
+                    Icon(Icons.arrow_back, color: Colors.white),
+                    SizedBox(width: 6),
+                    Text(
+                      'Back',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    )
+                  ],
+                ),
               ),
             ),
 
             Expanded(
               child: SingleChildScrollView(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -180,10 +173,19 @@ class ProfileMenuPage extends StatelessWidget {
                       subtitle: 'Manage your posts',
                     ),
                     const SizedBox(height: 12),
-                    const ProfileMenuItem(
+                    ProfileMenuItem(
                       icon: Icons.settings_outlined,
                       title: 'Setting',
                       subtitle: 'Account & Privacy',
+                      onTap: () {
+                        // Navigasi ke Settings Page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsPage(),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
                     const ProfileMenuItem(
@@ -192,10 +194,18 @@ class ProfileMenuPage extends StatelessWidget {
                       subtitle: 'FAQ & Support',
                     ),
                     const SizedBox(height: 12),
-                    const ProfileMenuItem(
+                    ProfileMenuItem(
                       icon: Icons.logout,
                       title: 'Logout',
                       subtitle: '',
+                      onTap: () {
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                            ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -212,12 +222,14 @@ class ProfileMenuItem extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback? onTap; // Tambahkan parameter onTap
 
   const ProfileMenuItem({
     super.key,
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.onTap, // onTap bersifat optional
   });
 
   @override
@@ -253,15 +265,15 @@ class ProfileMenuItem extends StatelessWidget {
         ),
         subtitle: subtitle.isNotEmpty
             ? Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.black54,
-                ),
-              )
+          subtitle,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black54,
+          ),
+        )
             : null,
-        onTap: () {
-          // TODO: isi aksi ketika menu di-tap
+        onTap: onTap ?? () {
+          // Default action jika onTap tidak diberikan
         },
       ),
     );

@@ -11,9 +11,9 @@
  
 4. Link Figma : https://www.figma.com/design/qAtSu5qZhVxmbu4ABWaPCU/Rekayasa-Interaksi---Social-Media?node-id=140-4966&p=f&t=vdDHKttzuhbggJ9j-0 
  
-5. Worksheet : https://drive.google.com/drive/folders/1nFt5qJlWgX2Oua8k3odLcnt6tucbxyJl?usp=sharing 
+5. Worksheet : ![Worksheet](Worksheets/Worksheet.docx)
 
-6. Low Fidelity Prototype : https://drive.google.com/drive/folders/1LZKdboOFmlxlTKVtmtdaCQ71sWWJ_FHV?usp=sharing 
+6. Low Fidelity Prototype :  ![LowFidelity](LowFidelity)
  
 7. Tabel pembagian BackLog : ![TabelBackLog](assets/images/TabelBackLog.png)
  

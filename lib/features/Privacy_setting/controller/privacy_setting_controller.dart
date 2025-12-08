@@ -5,7 +5,7 @@ class PrivacyController extends GetxController {
   final RxList<String> interests = <String>[
     'Technology',
     'Fitness',
-    'Food',
+    'Foods',
   ].obs;
 
   final RxBool isNudgeActive = true.obs;

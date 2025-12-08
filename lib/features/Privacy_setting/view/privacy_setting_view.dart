@@ -30,7 +30,7 @@ class PrivacyView extends GetView<PrivacyController> {
                   ),
                   const SizedBox(width: 4),
                   const Text(
-                    'Settings',
+                    'Setting',
                     style: TextStyle(
                       color: Colors.white70,
                       fontSize: 14,

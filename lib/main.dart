@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:projek_mobile/features/login/view/login_page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 //tes
 
-void main() {
+Future<void> main() async {
   // Fungsi utama yang pertama kali dijalankan
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp()); // Menjalankan widget MyApp
 }
 
@@ -24,7 +31,7 @@ class MyApp extends StatelessWidget {
       ),
 
       // Halaman pertama yang ditampilkan saat aplikasi dibuka
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const LoginPage(),
     );
   }
 }

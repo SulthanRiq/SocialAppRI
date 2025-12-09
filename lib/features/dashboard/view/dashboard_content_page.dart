@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:projek_mobile/common/widgets/custom_bottom_navbar.dart';
+import 'package:projek_mobile/common/widgets/post_card_widget.dart';
+import 'package:projek_mobile/features/profile/view/profile.dart';
+import 'package:projek_mobile/features/focs/view/focs_page.dart';
 import 'package:projek_mobile/features/dashboard/view/share_view.dart';
 import 'package:projek_mobile/features/dashboard/view/article_detail_view.dart';
 import 'package:projek_mobile/features/dashboard/view/health_comment_view.dart';
 import 'package:projek_mobile/features/dashboard/view/politics_comment_view.dart';
+import '../../search/view/search_page.dart' hide CustomBottomNavBar;
+import '../../notification/view/notification_page.dart' hide CustomBottomNavBar;
+import '../../inbox/view/inbox_page.dart';
+import '../../create_post/view/create_post_page.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -12,363 +20,310 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
+  int _selectedIndex = 0;
   int _selectedTabIndex = 0;
+  late final List<Map<String, dynamic>> _posts;
+
+  @override
+  void initState() {
+    super.initState();
+    _posts = _buildPostsData();
+  }
+
+  List<Map<String, dynamic>> _buildPostsData() {
+    return [
+      {
+        'type': 'health',
+        'username': '@lifestyle_daily',
+        'content': 'Tips hidup sehat...',
+        'imageUrl': 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80',
+        'likes': '20.5k',
+        'comments': '2k',
+        'shares': '12',
+        'isNews': false,
+        'articleId': 'health_1',
+      },
+      {
+        'type': 'politics',
+        'username': '@Breaking_News',
+        'time': '15m',
+        'content': 'Trending Now\n\n"POLITISI X KORUPSI TRILIUNAN RUPIAH !\nBukti Mengejutkan ! "',
+        'subContent': '[Breaking News Image]',
+        'source': 'detik.com',
+        'trustScore': 'Trust: 7.5/10',
+        'likes': '150.2k',
+        'comments': '21,4 k',
+        'shares': '',
+        'isNews': true,
+        'articleId': 'politics_1',
+      },
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    const Color topBarColor = Color(0xFF6B95A8);
+    const Color bgColor = Color(0xFFB8C5CC);
+
     return Scaffold(
+      backgroundColor: bgColor,
       body: SafeArea(
-        bottom: false,
-        child: Stack(
+        child: Column(
           children: [
-            Column(
-              children: [
-                _buildTopBar(),
-                _buildTabBar(),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
-                    children: [
-                      PostCard(
-                        avatarColor: Colors.transparent,
-                        username: "@lifestyle_daily",
-                        content: "Tips hidup sehat...",
-                        imageUrl:
-                            "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80",
-                        likes: "20.5k",
-                        comments: "2k",
-                        shares: "12",
-                        isNews: false,
-                        onCommentTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const HealthCommentView()),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      PostCard(
-                        avatarColor: Colors.transparent,
-                        username: "@Breaking_News",
-                        time: "15m",
-                        content:
-                            'Trending Now\n\n"POLITISI X KORUPSI TRILIUNAN RUPIAH !\nBukti Mengejutkan ! "',
-                        subContent: "[Breaking News Image]",
-                        source: "detik.com",
-                        trustScore: "Trust: 7.5/10",
-                        likes: "150.2k",
-                        comments: "21,4 k",
-                        shares: "",
-                        isNews: true,
-                        onReadTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const ArticleDetailView()),
-                          );
-                        },
-                        onShareTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const ShareView()),
-                          );
-                        },
-                        onCommentTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const PoliticsCommentView()),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            _TopBar(
+              topBarColor: topBarColor,
+              onProfileTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileMenuPage()),
+              ),
+              onAddTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CreatePostScreen()),
+              ),
             ),
-            const Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: CustomBottomNavBar(),
+            _TabBar(
+              selectedTabIndex: _selectedTabIndex,
+              onTabChanged: (index) => setState(() => _selectedTabIndex = index),
+            ),
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+                itemCount: _posts.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 20),
+                itemBuilder: (context, index) {
+                  final post = _posts[index];
+                  return _buildPostCard(context, post);
+                },
+              ),
             ),
           ],
         ),
       ),
+      bottomNavigationBar: CustomBottomNavBar(
+        selectedIndex: _selectedIndex,
+        onItemTapped: _handleNavigation,
+      ),
     );
   }
 
-  Widget _buildTopBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const CircleAvatar(
-            radius: 18,
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+  void _handleNavigation(int index) {
+    setState(() => _selectedIndex = index);
+
+    final routes = {
+      1: () => const SearchScreen(),
+      2: () => const FocsCScreen(),
+      3: () => const NotificationScreen(),
+      4: () => const InboxScreen(),
+    };
+
+    final route = routes[index];
+    if (route != null) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => route()));
+    }
+  }
+
+  Widget _buildPostCard(BuildContext context, Map<String, dynamic> post) {
+    if (post['type'] == 'health') {
+      return PostCard(
+        avatarColor: Colors.transparent,
+        username: post['username'],
+        content: post['content'],
+        imageUrl: post['imageUrl'],
+        likes: post['likes'],
+        comments: post['comments'],
+        shares: post['shares'],
+        isNews: post['isNews'],
+        onCommentTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HealthCommentView(articleId: post['articleId']),
           ),
-          Container(
-            decoration: BoxDecoration(
-                shape: BoxShape.circle, color: Colors.white.withOpacity(0.3)),
-            child: IconButton(
-                icon: const Icon(Icons.add, color: Colors.white),
-                onPressed: () {}),
+        ),
+        onShareTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ShareView(
+              article: {
+                'id': post['articleId'],
+                'title': 'Tips Hidup Sehat: 5 Kebiasaan yang Wajib Diterapkan',
+                'source': post['username'],
+                'content': 'Menerapkan gaya hidup sehat sangat penting untuk kesejahteraan jangka panjang. Berikut adalah 5 kebiasaan sederhana yang dapat Anda terapkan setiap hari untuk meningkatkan kualitas hidup Anda.',
+              },
+            ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildTabItem("For You", 0),
-          const Icon(Icons.catching_pokemon, color: Colors.white54, size: 30),
-          _buildTabItem("Following", 1),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabItem(String text, int index) {
-    bool isSelected = _selectedTabIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedTabIndex = index),
-      child: Column(
-        children: [
-          Text(text,
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: Colors.black87)),
-          if (isSelected)
-            Container(
-                margin: const EdgeInsets.only(top: 4),
-                height: 3,
-                width: 40,
-                color: Colors.blue)
-        ],
-      ),
-    );
+        ),
+      );
+    } else {
+      return PostCard(
+        avatarColor: Colors.transparent,
+        username: post['username'],
+        time: post['time'],
+        content: post['content'],
+        subContent: post['subContent'],
+        source: post['source'],
+        trustScore: post['trustScore'],
+        likes: post['likes'],
+        comments: post['comments'],
+        shares: post['shares'],
+        isNews: post['isNews'],
+        onReadTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ArticleDetailView(
+              article: {
+                'id': post['articleId'],
+                'title': 'POLITISI X KORUPSI TRILIUNAN RUPIAH !',
+                'source': post['source'],
+                'content': 'Bukti mengejutkan telah ditemukan terkait kasus korupsi yang melibatkan politisi ternama. Investigasi mendalam mengungkap skema korupsi yang merugikan negara triliunan rupiah. Aparat penegak hukum telah mengamankan berbagai barang bukti dan dokumen penting yang terkait dengan kasus ini.',
+                'imageUrl': 'https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1',
+                'publishedAt': post['time'],
+                'trustScore': post['trustScore'],
+              },
+            ),
+          ),
+        ),
+        onShareTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ShareView(
+              article: {
+                'id': post['articleId'],
+                'title': 'POLITISI X KORUPSI TRILIUNAN RUPIAH !',
+                'source': post['source'],
+                'content': 'Bukti mengejutkan...',
+              },
+            ),
+          ),
+        ),
+        onCommentTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PoliticsCommentView(articleId: post['articleId']),
+          ),
+        ),
+      );
+    }
   }
 }
 
-// --- WIDGET PENDUKUNG DASHBOARD ---
+class _TopBar extends StatelessWidget {
+  final Color topBarColor;
+  final VoidCallback onProfileTap;
+  final VoidCallback onAddTap;
 
-class PostCard extends StatelessWidget {
-  final String username, time, content, likes, comments, shares;
-  final String? subContent, source, trustScore;
-  final String imageUrl;
-  final Color avatarColor;
-  final bool isNews;
-  final VoidCallback? onReadTap;
-  final VoidCallback? onShareTap;
-  final VoidCallback? onCommentTap;
-
-  const PostCard({
-    super.key,
-    required this.username,
-    this.time = "",
-    required this.content,
-    this.subContent,
-    this.imageUrl = "",
-    required this.likes,
-    required this.comments,
-    required this.shares,
-    required this.avatarColor,
-    this.isNews = false,
-    this.source,
-    this.trustScore,
-    this.onReadTap,
-    this.onShareTap,
-    this.onCommentTap,
+  const _TopBar({
+    required this.topBarColor,
+    required this.onProfileTap,
+    required this.onAddTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE0E0E0),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 5,
-              offset: const Offset(0, 2))
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      height: 70,
+      width: double.infinity,
+      color: topBarColor,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(children: [
-            Text(username,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            if (time.isNotEmpty)
-              Text(" · $time", style: const TextStyle(color: Colors.grey))
-          ]),
-          if (isNews)
-            Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Row(children: const [
-                  Icon(Icons.local_fire_department,
-                      color: Colors.red, size: 16),
-                  SizedBox(width: 4),
-                  Text("Trending Now",
-                      style: TextStyle(fontSize: 12, color: Colors.black54))
-                ])),
-          const SizedBox(height: 8),
-          Text(content, style: const TextStyle(fontSize: 14, height: 1.4)),
-          const SizedBox(height: 12),
-          if (imageUrl.isNotEmpty)
-            ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(imageUrl,
-                    height: 120,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (ctx, err, stack) =>
-                        Container(height: 120, color: Colors.grey[300]))),
-          if (subContent != null)
-            Container(
-                margin: const EdgeInsets.symmetric(vertical: 10),
-                padding: const EdgeInsets.all(20),
-                width: double.infinity,
-                color: Colors.grey[300],
-                child: Center(child: Text(subContent!))),
-          if (isNews)
-            Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(children: [
-                  Text(source ?? "",
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.lock_outline, size: 14, color: Colors.grey),
-                  Text(" $trustScore",
-                      style: const TextStyle(color: Colors.grey))
-                ])),
-          const SizedBox(height: 12),
-
-          // Stats Row dengan onTap untuk komentar
           GestureDetector(
-            onTap: onCommentTap,
-            child: Row(
-              children: [
-                const Icon(Icons.favorite, size: 20),
-                const SizedBox(width: 4),
-                Text(likes),
-                const SizedBox(width: 20),
-                const Icon(Icons.mode_comment_outlined, size: 20),
-                const SizedBox(width: 4),
-                Text(comments),
-                if (shares.isNotEmpty) ...[
-                  const SizedBox(width: 20),
-                  const Icon(Icons.share_outlined, size: 20),
-                  const SizedBox(width: 4),
-                  Text(shares)
-                ]
-              ],
+            onTap: onProfileTap,
+            child: const CircleAvatar(
+              radius: 26,
+              backgroundColor: Colors.white,
+              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
             ),
           ),
-
-          // --- BAGIAN NAVIGASI KE SHARE DAN BACA ---
-          if (isNews)
-            Padding(
-              padding: const EdgeInsets.only(top: 16.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: onReadTap ?? () {},
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF8FA37E)),
-                      child: const Text("Baca",
-                          style: TextStyle(color: Colors.white)),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: onShareTap ?? () {},
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFC4C46A)),
-                      child: const Text("Share",
-                          style: TextStyle(color: Colors.white)),
-                    ),
-                  ),
-                ],
+          GestureDetector(
+            onTap: onAddTap,
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.3),
+                shape: BoxShape.circle,
               ),
-            )
+              child: const Icon(Icons.add, color: Colors.white, size: 30),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class CustomBottomNavBar extends StatelessWidget {
-  const CustomBottomNavBar({super.key});
+class _TabBar extends StatelessWidget {
+  final int selectedTabIndex;
+  final ValueChanged<int> onTabChanged;
+
+  const _TabBar({
+    required this.selectedTabIndex,
+    required this.onTabChanged,
+  });
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 80,
-      child: Stack(
+    return Container(
+      height: 50,
+      color: const Color(0xFFA8B5BC),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              height: 60,
-              decoration: const BoxDecoration(
-                  color: Color(0xFF9FB8C7),
-                  border: Border(top: BorderSide(color: Colors.white30)),
-                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)]),
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    const SizedBox(width: 40),
-                    IconButton(
-                        icon: const Icon(Icons.search, size: 30),
-                        onPressed: () {}),
-                    IconButton(
-                        icon: const Icon(Icons.nightlight_round, size: 30),
-                        onPressed: () {}),
-                    IconButton(
-                        icon: const Icon(Icons.notifications_none, size: 30),
-                        onPressed: () {}),
-                    IconButton(
-                        icon: const Icon(Icons.chat_bubble_outline, size: 30),
-                        onPressed: () {})
-                  ]),
+          _TabItem(
+            text: 'For You',
+            isSelected: selectedTabIndex == 0,
+            onTap: () => onTabChanged(0),
+          ),
+          Image.asset(
+            'assets/images/social_bear_small.png',
+            height: 35,
+            errorBuilder: (_, __, ___) => const Icon(Icons.pets, size: 30),
+          ),
+          _TabItem(
+            text: 'Following',
+            isSelected: selectedTabIndex == 1,
+            onTap: () => onTabChanged(1),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TabItem extends StatelessWidget {
+  final String text;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _TabItem({
+    required this.text,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: Colors.black87,
             ),
           ),
-          Positioned(
-              left: 20,
-              bottom: 15,
-              child: Container(
-                  height: 60,
-                  width: 60,
-                  decoration: BoxDecoration(
-                      color: Colors.black,
-                      shape: BoxShape.circle,
-                      border:
-                          Border.all(color: const Color(0xFF9FB8C7), width: 4),
-                      boxShadow: const [
-                        BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 8,
-                            offset: Offset(0, 4))
-                      ]),
-                  child:
-                      const Icon(Icons.home, color: Colors.white, size: 35))),
+          if (isSelected)
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              height: 3,
+              width: 40,
+              color: Colors.black87,
+            ),
         ],
       ),
     );

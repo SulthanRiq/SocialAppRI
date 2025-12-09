@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projek_mobile/features/privacy/view/wellness_dashboard_page.dart';
+import 'daily_reminder_page.dart';
 
 class PrivacyPage extends StatelessWidget {
   const PrivacyPage({super.key});
@@ -227,6 +228,12 @@ class PrivacyPage extends StatelessWidget {
                             color: buttonGreen,
                             onTap: () {
                               // TODO: navigasi ke reminder settings
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const ReminderPage()
+                                  ),
+                              );
                             },
                           ),
                         ],

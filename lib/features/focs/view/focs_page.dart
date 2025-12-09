@@ -7,6 +7,9 @@ import 'package:projek_mobile/features/focs/view/topic_filter_page.dart';
 import 'package:projek_mobile/features/inbox/view/inbox_page.dart';
 // Import comment page
 import 'package:projek_mobile/features/focs/view/comment_page.dart';
+import '../../dashboard/view/dashboard_register_page.dart';
+import '../../notification/view/notification_page.dart';
+import '../../search/view/search_page.dart';
 
 class FocsCScreen extends StatefulWidget {
   const FocsCScreen({Key? key}) : super(key: key);
@@ -421,15 +424,33 @@ class _FocsCScreenState extends State<FocsCScreen> {
 
         switch (index) {
           case 0:
-            Navigator.pop(context);
+            // Home - Kembali ke HomePage
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const HomePage(),
+                ),
+            );
             break;
           case 1:
-            _showSnackBar('Search feature coming soon!');
+            // Search - TODO: Tambahkan navigasi ke SearchScreen
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SearchScreen(),
+              ),
+            );
             break;
           case 2:
             break;
           case 3:
-            _showSnackBar('Notifications feature coming soon!');
+            // Notifications - TODO: Tambahkan navigasi ke NotificationScreen
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const NotificationScreen()
+                ),
+            );
             break;
           case 4:
             Navigator.push(

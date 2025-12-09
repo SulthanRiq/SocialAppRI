@@ -286,6 +286,54 @@ class RegisterPage extends StatelessWidget {
                       ),
                     ),
 
+                    const SizedBox(height: 32),
+
+                    // GARIS PEMBATAS
+                    SizedBox(
+                      width: 200,
+                      child: Divider(
+                        thickness: 1,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    const Text(
+                      'or Sign In with',
+                      style: TextStyle(color: Colors.white, fontSize: 13),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // GOOGLE & FACEBOOK
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            // TODO: login dengan Google
+                          },
+                          child: Image.asset(
+                            'assets/icons/google.png',
+                            width: 36,
+                            height: 36,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        InkWell(
+                          onTap: () {
+                            // TODO: login dengan Facebook
+                          },
+                          child: Image.asset(
+                            'assets/icons/facebook.png',
+                            width: 36,
+                            height: 36,
+                          ),
+                        ),
+                      ],
+                    ),
+
                     const SizedBox(height: 40),
                   ],
                 ),

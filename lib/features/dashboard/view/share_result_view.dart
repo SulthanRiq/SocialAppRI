@@ -41,6 +41,9 @@ class _ShareResultViewState extends State<ShareResultView> {
 
   @override
   Widget build(BuildContext context) {
+    // Cek apakah minimal 1 suggestion dipilih
+    bool hasSelectedSuggestion = _selectedSuggestions.contains(true);
+
     return Scaffold(
       backgroundColor: const Color(0xFFBCCCD6),
       body: SafeArea(
@@ -168,25 +171,38 @@ class _ShareResultViewState extends State<ShareResultView> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Row(
+                    Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.lightbulb_outline, color: Colors.black87, size: 22),
-                        SizedBox(width: 8),
+                        const Icon(Icons.lightbulb_outline, color: Colors.black87, size: 22),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'SMART SUGGESTIONS:',
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              Text(
-                                '(Pilih salah satu untuk ditambahkan)',
-                                style: TextStyle(fontSize: 12, color: Colors.black54),
+                              Row(
+                                children: [
+                                  const Text(
+                                    '(Pilih minimal salah satu)',
+                                    style: TextStyle(fontSize: 12, color: Colors.black54),
+                                  ),
+                                  if (!hasSelectedSuggestion)
+                                    const Text(
+                                      ' *',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                ],
                               ),
                             ],
                           ),
@@ -194,37 +210,47 @@ class _ShareResultViewState extends State<ShareResultView> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    ...List.generate(_suggestions.length, (index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: Checkbox(
-                                value: _selectedSuggestions[index],
-                                onChanged: (value) {
-                                  setState(() {
-                                    _selectedSuggestions[index] = value ?? false;
-                                  });
-                                },
-                                activeColor: const Color(0xFF60859A),
-                                side: const BorderSide(color: Colors.black54),
-                              ),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: !hasSelectedSuggestion
+                            ? Border.all(color: Colors.red.withOpacity(0.5), width: 2)
+                            : null,
+                      ),
+                      child: Column(
+                        children: List.generate(_suggestions.length, (index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Checkbox(
+                                    value: _selectedSuggestions[index],
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _selectedSuggestions[index] = value ?? false;
+                                      });
+                                    },
+                                    activeColor: const Color(0xFF60859A),
+                                    side: const BorderSide(color: Colors.black54),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _suggestions[index],
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _suggestions[index],
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
+                          );
+                        }),
+                      ),
+                    ),
                     const SizedBox(height: 20),
                     const Text(
                       'Tulis caption tambahan :',
@@ -259,7 +285,9 @@ class _ShareResultViewState extends State<ShareResultView> {
                         child: ElevatedButton(
                           onPressed: _handleShare,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF8FA37E),
+                            backgroundColor: hasSelectedSuggestion
+                                ? const Color(0xFF8FA37E)
+                                : Colors.grey,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(25),
@@ -295,6 +323,14 @@ class _ShareResultViewState extends State<ShareResultView> {
   }
 
   void _handleShare() {
+    // Validasi: Cek apakah minimal 1 suggestion dipilih
+    bool hasSelectedSuggestion = _selectedSuggestions.contains(true);
+
+    if (!hasSelectedSuggestion) {
+      _showValidationDialog();
+      return;
+    }
+
     String shareText = '${widget.articleTitle}\n${widget.source}\n\n';
     shareText += '✓ Verifikasi Saya:\n';
     shareText += '✓ Status: ${widget.status}\n';
@@ -312,6 +348,51 @@ class _ShareResultViewState extends State<ShareResultView> {
     }
 
     _showShareBottomSheet(shareText);
+  }
+
+  void _showValidationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFD9D9D9),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+              SizedBox(width: 12),
+              Text(
+                'Perhatian!',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: const Text(
+            'Mohon pilih minimal satu smart suggestion sebelum melakukan share.',
+            style: TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                backgroundColor: const Color(0xFF60859A),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Mengerti', style: TextStyle(fontSize: 15)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showShareBottomSheet(String text) {

@@ -11,6 +11,7 @@ import '../../search/view/search_page.dart' hide CustomBottomNavBar;
 import '../../notification/view/notification_page.dart' hide CustomBottomNavBar;
 import '../../inbox/view/inbox_page.dart';
 import '../../create_post/view/create_post_page.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -42,6 +43,8 @@ class _DashboardViewState extends State<DashboardView> {
         'shares': '12',
         'isNews': false,
         'articleId': 'health_1',
+        'title': 'Tips Hidup Sehat: 5 Kebiasaan yang Wajib Diterapkan',
+        'fullContent': 'Menerapkan gaya hidup sehat sangat penting untuk kesejahteraan jangka panjang. Berikut adalah 5 kebiasaan sederhana yang dapat Anda terapkan setiap hari untuk meningkatkan kualitas hidup Anda.',
       },
       {
         'type': 'politics',
@@ -56,6 +59,8 @@ class _DashboardViewState extends State<DashboardView> {
         'shares': '',
         'isNews': true,
         'articleId': 'politics_1',
+        'title': 'POLITISI X KORUPSI TRILIUNAN RUPIAH !',
+        'fullContent': 'Bukti mengejutkan telah ditemukan terkait kasus korupsi yang melibatkan politisi ternama. Investigasi mendalam mengungkap skema korupsi yang merugikan negara triliunan rupiah.',
       },
     ];
   }
@@ -139,18 +144,11 @@ class _DashboardViewState extends State<DashboardView> {
             builder: (_) => HealthCommentView(articleId: post['articleId']),
           ),
         ),
-        onShareTap: () => Navigator.push(
+        // Icon share kecil langsung buka bottom sheet
+        onShareIconTap: () => _showShareBottomSheet(
           context,
-          MaterialPageRoute(
-            builder: (_) => ShareView(
-              article: {
-                'id': post['articleId'],
-                'title': 'Tips Hidup Sehat: 5 Kebiasaan yang Wajib Diterapkan',
-                'source': post['username'],
-                'content': 'Menerapkan gaya hidup sehat sangat penting untuk kesejahteraan jangka panjang. Berikut adalah 5 kebiasaan sederhana yang dapat Anda terapkan setiap hari untuk meningkatkan kualitas hidup Anda.',
-              },
-            ),
-          ),
+          title: post['title'],
+          content: post['fullContent'],
         ),
       );
     } else {
@@ -172,9 +170,9 @@ class _DashboardViewState extends State<DashboardView> {
             builder: (_) => ArticleDetailView(
               article: {
                 'id': post['articleId'],
-                'title': 'POLITISI X KORUPSI TRILIUNAN RUPIAH !',
+                'title': post['title'],
                 'source': post['source'],
-                'content': 'Bukti mengejutkan telah ditemukan terkait kasus korupsi yang melibatkan politisi ternama. Investigasi mendalam mengungkap skema korupsi yang merugikan negara triliunan rupiah. Aparat penegak hukum telah mengamankan berbagai barang bukti dan dokumen penting yang terkait dengan kasus ini.',
+                'content': post['fullContent'],
                 'imageUrl': 'https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1',
                 'publishedAt': post['time'],
                 'trustScore': post['trustScore'],
@@ -182,15 +180,22 @@ class _DashboardViewState extends State<DashboardView> {
             ),
           ),
         ),
+        // Icon share kecil langsung buka bottom sheet
+        onShareIconTap: () => _showShareBottomSheet(
+          context,
+          title: post['title'],
+          content: post['fullContent'],
+        ),
+        // Tombol "Share" besar hijau tetap ke halaman ShareView
         onShareTap: () => Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => ShareView(
               article: {
                 'id': post['articleId'],
-                'title': 'POLITISI X KORUPSI TRILIUNAN RUPIAH !',
+                'title': post['title'],
                 'source': post['source'],
-                'content': 'Bukti mengejutkan...',
+                'content': post['fullContent'],
               },
             ),
           ),
@@ -203,6 +208,113 @@ class _DashboardViewState extends State<DashboardView> {
         ),
       );
     }
+  }
+
+  // Method untuk menampilkan share bottom sheet
+  void _showShareBottomSheet(BuildContext context, {required String title, required String content}) {
+    final String shareText = '$title\n\n$content';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Color(0xFFD9D9D9),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: Colors.grey[400],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+
+            // Title
+            const Text(
+              'Share to',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Share options
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildShareButton(
+                  ctx: ctx,
+                  icon: Icons.chat,
+                  label: 'WhatsApp',
+                  color: const Color(0xFF25D366),
+                  text: shareText,
+                ),
+                _buildShareButton(
+                  ctx: ctx,
+                  icon: Icons.facebook,
+                  label: 'Facebook',
+                  color: const Color(0xFF1877F2),
+                  text: shareText,
+                ),
+                _buildShareButton(
+                  ctx: ctx,
+                  icon: Icons.send,
+                  label: 'Telegram',
+                  color: const Color(0xFF0088CC),
+                  text: shareText,
+                ),
+                _buildShareButton(
+                  ctx: ctx,
+                  icon: Icons.more_horiz,
+                  label: 'More',
+                  color: Colors.grey,
+                  text: shareText,
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShareButton({
+    required BuildContext ctx,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required String text,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(ctx);
+        Share.share(text);
+      },
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: color,
+            child: Icon(icon, color: Colors.white, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ],
+      ),
+    );
   }
 }
 

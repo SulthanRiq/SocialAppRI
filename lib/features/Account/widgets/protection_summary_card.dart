@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projek_mobile/features/dashboard/view/moderation_log_page.dart';
 
 class ProtectionSummaryCard extends StatelessWidget {
   const ProtectionSummaryCard({super.key});
@@ -33,13 +34,20 @@ class ProtectionSummaryCard extends StatelessWidget {
                 style: TextStyle(fontSize: 13),
               ),
               const SizedBox(height: 14),
+
+              // 🔽 BUTTON: LIHAT MODERATION LOG
               Center(
                 child: SizedBox(
                   width: 190,
                   height: 36,
                   child: ElevatedButton(
                     onPressed: () {
-                      // TODO: buka halaman moderation log
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ModerationLogPage(),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF7BA87B),

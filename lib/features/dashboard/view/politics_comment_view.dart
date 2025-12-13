@@ -13,17 +13,19 @@ class PoliticsCommentView extends StatefulWidget {
 
 class _PoliticsCommentViewState extends State<PoliticsCommentView> {
   final TextEditingController _commentController = TextEditingController();
-  final CommentController _controller = Get.find();
+  late final CommentController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = Get.put(CommentController());
     _controller.loadComments(widget.articleId);
   }
 
   @override
   void dispose() {
     _commentController.dispose();
+    Get.delete<CommentController>();
     super.dispose();
   }
 

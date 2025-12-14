@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:projek_mobile/features/login/view/login_page.dart';
-import 'package:projek_mobile/features/settings/view/settings_page.dart'; // Import halaman settings
+import 'package:projek_mobile/features/settings/view/settings_page.dart';
 import 'package:projek_mobile/features/dashboard/view/dashboard_register_page.dart';
+
+// IMPORT HELP PAGE
+import 'package:projek_mobile/features/help/view/help_faq_page.dart';
+
+// ✅ IMPORT POST PAGE
+import 'package:projek_mobile/features/post/view/manage_post_page.dart';
 
 class ProfileMenuPage extends StatelessWidget {
   const ProfileMenuPage({super.key});
@@ -13,24 +19,17 @@ class ProfileMenuPage extends StatelessWidget {
     const Color accentColor = Color(0xFF36466B);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFB8C5CC),
       body: SafeArea(
         child: Column(
           children: [
-            // TOP BAR dengan fungsi back
+            // ===== TOP BAR =====
             Container(
               color: topBarColor,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               width: double.infinity,
               child: GestureDetector(
-                onTap: () {
-                  // Kembali ke halaman sebelumnya
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const HomePage()
-                      ),
-                  );
-                },
+                onTap: () => Navigator.pop(context),
                 child: Row(
                   children: const [
                     Icon(Icons.arrow_back, color: Colors.white),
@@ -47,10 +46,10 @@ class ProfileMenuPage extends StatelessWidget {
               ),
             ),
 
+            // ===== CONTENT =====
             Expanded(
               child: SingleChildScrollView(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -65,7 +64,7 @@ class ProfileMenuPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    // PROFILE CARD
+                    // ===== PROFILE CARD =====
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
@@ -77,7 +76,6 @@ class ProfileMenuPage extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              // Avatar
                               CircleAvatar(
                                 radius: 30,
                                 backgroundColor: accentColor,
@@ -126,26 +124,19 @@ class ProfileMenuPage extends StatelessWidget {
                           const Divider(thickness: 0.7),
                           const SizedBox(height: 8),
 
-                          // Stats
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: const [
                               Icon(Icons.bar_chart, size: 18),
                               SizedBox(width: 4),
-                              Text(
-                                '2 Posts',
-                                style: TextStyle(fontSize: 13),
-                              ),
+                              Text('2 Posts', style: TextStyle(fontSize: 13)),
                               SizedBox(width: 24),
                               SizedBox(
                                 height: 14,
                                 child: VerticalDivider(thickness: 0.8),
                               ),
                               SizedBox(width: 24),
-                              Text(
-                                '1,2 k Followers',
-                                style: TextStyle(fontSize: 13),
-                              ),
+                              Text('1,2 k Followers', style: TextStyle(fontSize: 13)),
                             ],
                           ),
                         ],
@@ -154,56 +145,69 @@ class ProfileMenuPage extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    // MENU LIST
+                    // ===== MENU LIST =====
                     const ProfileMenuItem(
                       icon: Icons.person_outline,
                       title: 'Edit Profile',
                       subtitle: 'Edit profile',
                     ),
                     const SizedBox(height: 12),
+
                     const ProfileMenuItem(
                       icon: Icons.calendar_today_outlined,
                       title: 'Daily Activity',
                       subtitle: 'Track your usage',
                     ),
                     const SizedBox(height: 12),
-                    const ProfileMenuItem(
+
+                    // ✅ POST (SEKARANG BISA DIKLIK)
+                    ProfileMenuItem(
                       icon: Icons.inventory_2_outlined,
                       title: 'Post',
                       subtitle: 'Manage your posts',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ManagePostPage()),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
+
                     ProfileMenuItem(
                       icon: Icons.settings_outlined,
                       title: 'Setting',
                       subtitle: 'Account & Privacy',
                       onTap: () {
-                        // Navigasi ke Settings Page
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => const SettingsPage(),
-                          ),
+                          MaterialPageRoute(builder: (_) => const SettingsPage()),
                         );
                       },
                     ),
                     const SizedBox(height: 12),
-                    const ProfileMenuItem(
+
+                    ProfileMenuItem(
                       icon: Icons.help_outline,
                       title: 'Help',
                       subtitle: 'FAQ & Support',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const HelpFaqPage()),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
+
                     ProfileMenuItem(
                       icon: Icons.logout,
                       title: 'Logout',
                       subtitle: '',
                       onTap: () {
                         Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const LoginPage(),
-                            ),
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginPage()),
                         );
                       },
                     ),
@@ -222,14 +226,14 @@ class ProfileMenuItem extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final VoidCallback? onTap; // Tambahkan parameter onTap
+  final VoidCallback? onTap;
 
   const ProfileMenuItem({
     super.key,
     required this.icon,
     required this.title,
     required this.subtitle,
-    this.onTap, // onTap bersifat optional
+    this.onTap,
   });
 
   @override
@@ -272,9 +276,7 @@ class ProfileMenuItem extends StatelessWidget {
           ),
         )
             : null,
-        onTap: onTap ?? () {
-          // Default action jika onTap tidak diberikan
-        },
+        onTap: onTap,
       ),
     );
   }

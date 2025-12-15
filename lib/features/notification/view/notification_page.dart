@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-// Import custom bottom navbar yang sudah dibuat
+// ✅ Import custom bottom navbar yang sudah dibuat (COMMON)
 import 'package:projek_mobile/common/widgets/custom_bottom_navbar.dart';
+
 import 'package:projek_mobile/features/dashboard/view/dashboard_register_page.dart';
 import 'package:projek_mobile/features/focs/view/focs_page.dart';
 import '../../search/view/search_page.dart';
@@ -18,8 +19,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Color topBarColor = const Color(0xFF6B95A8); // biru abu-abu (sama dengan home)
-    final Color bgColor = const Color(0xFFB8C5CC); // abu-abu terang (sama dengan home)
+    final Color topBarColor = const Color(0xFF6B95A8);
+    final Color bgColor = const Color(0xFFB8C5CC);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -45,7 +46,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
             // CONTENT AREA
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 children: const [
                   NotificationItem(
                     avatarUrl: 'https://i.pravatar.cc/150?img=1',
@@ -83,7 +85,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         ),
       ),
 
-      // BOTTOM NAVIGATION BAR (gunakan CustomBottomNavBar yang sudah ada)
+      // ✅ BOTTOM NAVIGATION BAR (pakai dari COMMON)
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: _selectedIndex,
         onItemTapped: (index) {
@@ -93,37 +95,26 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
           // Handle navigasi
           if (index == 0) {
-            // Kembali ke Home
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(
-                builder: (context) => const HomePage(),
-              ),
+              MaterialPageRoute(builder: (context) => const HomePage()),
             );
           } else if (index == 2) {
-            // Navigasi ke Focs/Create
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const FocsCScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const FocsCScreen()),
             );
           } else if (index == 1) {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const SearchScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const SearchScreen()),
             );
           } else if (index == 4) {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const InboxScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const InboxScreen()),
             );
           }
-          // Index 1 = Search, 4 = Messages
         },
       ),
     );
@@ -196,108 +187,6 @@ class NotificationItem extends StatelessWidget {
             color: Colors.blue.withOpacity(0.7),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Custom Bottom Nav Bar Widget (sementara di file ini, nanti bisa dipisah)
-class CustomBottomNavBar extends StatelessWidget {
-  final int selectedIndex;
-  final Function(int) onItemTapped;
-
-  const CustomBottomNavBar({
-    super.key,
-    required this.selectedIndex,
-    required this.onItemTapped,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 65,
-      decoration: BoxDecoration(
-        color: const Color(0xFF6B95A8), // biru abu-abu
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // Home
-          _buildNavItem(
-            icon: Icons.home,
-            isSelected: selectedIndex == 0,
-            onTap: () => onItemTapped(0),
-          ),
-
-          // Search
-          _buildNavItem(
-            icon: Icons.search,
-            isSelected: selectedIndex == 1,
-            onTap: () => onItemTapped(1),
-          ),
-
-          // Create / Focs Mode (tombol tengah)
-          _buildNavItem(
-            icon: Icons.add_box,
-            isSelected: selectedIndex == 2,
-            onTap: () => onItemTapped(2),
-          ),
-
-          // Notifications
-          _buildNavItem(
-            icon: Icons.notifications,
-            isSelected: selectedIndex == 3,
-            onTap: () => onItemTapped(3),
-          ),
-
-          // Messages
-          _buildNavItem(
-            icon: Icons.chat_bubble,
-            isSelected: selectedIndex == 4,
-            onTap: () => onItemTapped(4),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Helper widget untuk navigation item
-  Widget _buildNavItem({
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : Colors.white70,
-              size: 28,
-            ),
-            if (isSelected)
-              Container(
-                margin: const EdgeInsets.only(top: 4),
-                height: 3,
-                width: 30,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-          ],
-        ),
       ),
     );
   }

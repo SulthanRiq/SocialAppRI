@@ -5,6 +5,8 @@ import '../../dashboard/view/dashboard_register_page.dart';
 import '../../focs/view/focs_page.dart';
 import '../../notification/view/notification_page.dart';
 import '../../inbox/view/inbox_page.dart';
+import 'trend_posts_page.dart';
+import 'package:projek_mobile/features/profile/view/profile.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -39,12 +41,19 @@ class _SearchScreenState extends State<SearchScreen> {
                   // Foto profil
                   GestureDetector(
                     onTap: () {
-                      // Navigasi ke profile
+                      // ✅ NAVIGASI KE PROFILE MENU PAGE
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileMenuPage(),
+                        ),
+                      );
                     },
                     child: const CircleAvatar(
                       radius: 26,
                       backgroundColor: Colors.white,
-                      backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+                      backgroundImage:
+                      NetworkImage('https://i.pravatar.cc/150?img=11'),
                     ),
                   ),
                 ],
@@ -169,7 +178,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       ),
 
-      // BOTTOM NAVIGATION BAR
+      // BOTTOM NAVIGATION BAR (pakai yang dari common)
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: _selectedIndex,
         onItemTapped: (index) {
@@ -181,10 +190,10 @@ class _SearchScreenState extends State<SearchScreen> {
           if (index == 0) {
             // Kembali ke Home
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                ),
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomePage(),
+              ),
             );
           } else if (index == 2) {
             // Navigasi ke Focs/Create
@@ -216,7 +225,17 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // Tab Untuk Anda
+  // ✅ fungsi untuk pindah ke halaman trend
+  void _goToTrend(String title) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TrendPostsPage(trendTitle: title),
+      ),
+    );
+  }
+
+  // Tab Untuk Anda (tetap seperti punyamu)
   Widget _buildUntukAndaTab() {
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -225,196 +244,210 @@ class _SearchScreenState extends State<SearchScreen> {
           category: 'Sedang tren dalam indonesia',
           title: 'Berani bermimpi besar',
           postsCount: '7,189 postingan',
+          onTap: () => _goToTrend('Berani bermimpi besar'),
         ),
         const SizedBox(height: 16),
         _buildTrendCard(
           category: 'Sedang tren dalam indonesia',
           title: 'Indonesia Bersatu',
           postsCount: '1,724 postingan',
+          onTap: () => _goToTrend('Indonesia Bersatu'),
         ),
         const SizedBox(height: 16),
         _buildTrendCard(
           category: 'Sedang tren dalam indonesia',
           title: 'Bebas Narkoba',
           postsCount: '1,622 postingan',
+          onTap: () => _goToTrend('Bebas Narkoba'),
         ),
       ],
     );
   }
 
-  // Tab Sedang Tren
+  // ✅ Tab Sedang Tren (sesuai gambar: 1 panel + rank #1 #2 #3 di kanan)
   Widget _buildSedangTrenTab() {
+    final trends = [
+      {
+        'rank': '#1',
+        'title': '#MAYATYAWARDS2025',
+        'posts': '1,98 jt postingan',
+        'goTitle': 'MAYATYAWARDS2025',
+      },
+      {
+        'rank': '#2',
+        'title': '#Berani bermimpi besar',
+        'posts': '7.189 postingan',
+        'goTitle': 'Berani bermimpi besar',
+      },
+      {
+        'rank': '#3',
+        'title': '#IndonesiaBebasNarkoba',
+        'posts': '2.449 postingan',
+        // ⚠️ sesuaikan dengan key di TrendPostsPage kamu.
+        // Kalau di TrendPostsPage key-nya "Bebas Narkoba", pakai itu:
+        'goTitle': 'Bebas Narkoba',
+      },
+    ];
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _buildTrendCard(
-          category: 'Sedang tren dalam indonesia',
-          title: 'Berani bermimpi besar',
-          postsCount: '7,189 postingan',
-        ),
-        const SizedBox(height: 16),
-        _buildTrendCard(
-          category: 'Sedang tren dalam indonesia',
-          title: 'Indonesia Bersatu',
-          postsCount: '1,724 postingan',
-        ),
-        const SizedBox(height: 16),
-        _buildTrendCard(
-          category: 'Sedang tren dalam indonesia',
-          title: 'Bebas Narkoba',
-          postsCount: '1,622 postingan',
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFD9D9D9),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: List.generate(trends.length, (i) {
+              final t = trends[i];
+              final bool isLast = i == trends.length - 1;
+
+              return Column(
+                children: [
+                  _buildTrendingItem(
+                    category: 'Sedang tren dalam indonesia',
+                    title: t['title'] as String,
+                    postsCount: t['posts'] as String,
+                    rankText: t['rank'] as String,
+                    onTap: () => _goToTrend(t['goTitle'] as String),
+                  ),
+                  if (!isLast)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Divider(
+                        height: 14,
+                        thickness: 0.8,
+                        color: Colors.black.withOpacity(0.15),
+                      ),
+                    ),
+                ],
+              );
+            }),
+          ),
         ),
       ],
     );
   }
 
-  // Helper widget untuk trend card
+  // ✅ item untuk list trending (sesuai layout gambar)
+  Widget _buildTrendingItem({
+    required String category,
+    required String title,
+    required String postsCount,
+    required String rankText,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // kiri (teks)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    category,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    postsCount,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // kanan (#1 #2 #3)
+            Text(
+              rankText,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper widget untuk trend card (tetap punyamu)
   Widget _buildTrendCard({
     required String category,
     required String title,
     required String postsCount,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFD9D9D9),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            category,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.black54,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            postsCount,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Custom Bottom Nav Bar Widget (sementara di file ini, nanti bisa dipisah)
-class CustomBottomNavBar extends StatelessWidget {
-  final int selectedIndex;
-  final Function(int) onItemTapped;
-
-  const CustomBottomNavBar({
-    super.key,
-    required this.selectedIndex,
-    required this.onItemTapped,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 65,
-      decoration: BoxDecoration(
-        color: const Color(0xFF6B95A8), // biru abu-abu
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // Home
-          _buildNavItem(
-            icon: Icons.home,
-            isSelected: selectedIndex == 0,
-            onTap: () => onItemTapped(0),
-          ),
-
-          // Search
-          _buildNavItem(
-            icon: Icons.search,
-            isSelected: selectedIndex == 1,
-            onTap: () => onItemTapped(1),
-          ),
-
-          // Create / Focs Mode (tombol tengah)
-          _buildNavItem(
-            icon: Icons.add_box,
-            isSelected: selectedIndex == 2,
-            onTap: () => onItemTapped(2),
-          ),
-
-          // Notifications
-          _buildNavItem(
-            icon: Icons.notifications,
-            isSelected: selectedIndex == 3,
-            onTap: () => onItemTapped(3),
-          ),
-
-          // Messages
-          _buildNavItem(
-            icon: Icons.chat_bubble,
-            isSelected: selectedIndex == 4,
-            onTap: () => onItemTapped(4),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Helper widget untuk navigation item
-  Widget _buildNavItem({
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : Colors.white70,
-              size: 28,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFD9D9D9),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
-            if (isSelected)
-              Container(
-                margin: const EdgeInsets.only(top: 4),
-                height: 3,
-                width: 30,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              category,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
               ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              postsCount,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+              ),
+            ),
           ],
         ),
       ),

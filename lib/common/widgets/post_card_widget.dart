@@ -5,7 +5,7 @@ class PostCard extends StatelessWidget {
   final String? subContent, source, trustScore, rightLabel, imageUrl;
   final Color avatarColor;
   final bool isNews;
-  final VoidCallback? onReadTap, onShareTap, onCommentTap;
+  final VoidCallback? onReadTap, onShareTap, onCommentTap, onShareIconTap;
 
   const PostCard({
     super.key,
@@ -25,6 +25,7 @@ class PostCard extends StatelessWidget {
     this.onReadTap,
     this.onShareTap,
     this.onCommentTap,
+    this.onShareIconTap, // Callback baru untuk icon share kecil
   });
 
   @override
@@ -140,25 +141,36 @@ class PostCard extends StatelessWidget {
   }
 
   Widget _buildStats() {
-    return GestureDetector(
-      onTap: onCommentTap,
-      child: Row(
-        children: [
-          const Icon(Icons.favorite, size: 20),
-          const SizedBox(width: 4),
-          Text(likes),
+    return Row(
+      children: [
+        const Icon(Icons.favorite, size: 20),
+        const SizedBox(width: 4),
+        Text(likes),
+        const SizedBox(width: 20),
+        GestureDetector(
+          onTap: onCommentTap,
+          child: Row(
+            children: [
+              const Icon(Icons.mode_comment_outlined, size: 20),
+              const SizedBox(width: 4),
+              Text(comments),
+            ],
+          ),
+        ),
+        if (shares.isNotEmpty) ...[
           const SizedBox(width: 20),
-          const Icon(Icons.mode_comment_outlined, size: 20),
-          const SizedBox(width: 4),
-          Text(comments),
-          if (shares.isNotEmpty) ...[
-            const SizedBox(width: 20),
-            const Icon(Icons.share_outlined, size: 20),
-            const SizedBox(width: 4),
-            Text(shares),
-          ],
+          GestureDetector(
+            onTap: onShareIconTap, // Icon share kecil sekarang punya callback sendiri
+            child: Row(
+              children: [
+                const Icon(Icons.share_outlined, size: 20),
+                const SizedBox(width: 4),
+                Text(shares),
+              ],
+            ),
+          ),
         ],
-      ),
+      ],
     );
   }
 
@@ -179,7 +191,7 @@ class PostCard extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: ElevatedButton(
-              onPressed: onShareTap,
+              onPressed: onShareTap, // Tombol Share besar tetap menggunakan onShareTap
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFC4C46A),
               ),

@@ -19,6 +19,14 @@ class _ShareViewState extends State<ShareView> {
   /// FUNGSI DIPANGGIL SAAT TOMBOL SHARE DITEKAN
   /// --------------------------------------------
   void _shareToSocialMedia() {
+    // Validasi: Cek apakah semua pertanyaan sudah dijawab
+    if (_readStatusValue == null || _understandStatusValue == null) {
+      _showValidationDialog(
+        message: 'Mohon jawab semua pertanyaan verifikasi sebelum melanjutkan ke proses share.',
+      );
+      return;
+    }
+
     String quizScore = _calculateQuizScore();
     String status = _getReaderStatus();
 
@@ -38,6 +46,54 @@ class _ShareViewState extends State<ShareView> {
   }
 
   /// --------------------------------------------
+  /// MENAMPILKAN DIALOG ERROR VALIDATION
+  /// --------------------------------------------
+  void _showValidationDialog({required String message}) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFD9D9D9),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: const [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+              SizedBox(width: 12),
+              Text(
+                'Perhatian!',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                backgroundColor: const Color(0xFF60859A),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Mengerti', style: TextStyle(fontSize: 15)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// --------------------------------------------
   /// FUNGSI UNTUK MEMBUKA ARTIKEL LENGKAP
   /// --------------------------------------------
   void _openFullArticle() {
@@ -53,6 +109,9 @@ class _ShareViewState extends State<ShareView> {
 
   @override
   Widget build(BuildContext context) {
+    // Cek apakah semua pertanyaan sudah dijawab
+    bool isFormComplete = _readStatusValue != null && _understandStatusValue != null;
+
     return Scaffold(
       backgroundColor: const Color(0xFFBCCCD6),
       body: SafeArea(
@@ -87,7 +146,6 @@ class _ShareViewState extends State<ShareView> {
               ),
             ),
 
-            // --- TIDAK MENGUBAH UI ---
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20.0),
@@ -160,11 +218,26 @@ class _ShareViewState extends State<ShareView> {
                     ),
 
                     const SizedBox(height: 12),
-                    const Text("Sudah baca artikelnya?", style: TextStyle(fontSize: 16)),
+                    Row(
+                      children: [
+                        const Text("Sudah baca artikelnya?", style: TextStyle(fontSize: 16)),
+                        if (_readStatusValue == null)
+                          const Text(
+                            " *",
+                            style: TextStyle(fontSize: 16, color: Colors.red, fontWeight: FontWeight.bold),
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 8),
 
                     Container(
-                      decoration: BoxDecoration(color: const Color(0xFFD9D9D9), borderRadius: BorderRadius.circular(12)),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD9D9D9),
+                        borderRadius: BorderRadius.circular(12),
+                        border: _readStatusValue == null
+                            ? Border.all(color: Colors.red.withOpacity(0.5), width: 2)
+                            : null,
+                      ),
                       child: Column(
                         children: [
                           _buildRadioOption(1, "Ya, baca semua", _readStatusValue, (v) => setState(() => _readStatusValue = v)),
@@ -175,11 +248,26 @@ class _ShareViewState extends State<ShareView> {
                     ),
 
                     const SizedBox(height: 16),
-                    const Text("Seberapa pemahaman kamu?", style: TextStyle(fontSize: 16)),
+                    Row(
+                      children: [
+                        const Text("Seberapa pemahaman kamu?", style: TextStyle(fontSize: 16)),
+                        if (_understandStatusValue == null)
+                          const Text(
+                            " *",
+                            style: TextStyle(fontSize: 16, color: Colors.red, fontWeight: FontWeight.bold),
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 8),
 
                     Container(
-                      decoration: BoxDecoration(color: const Color(0xFFD9D9D9), borderRadius: BorderRadius.circular(12)),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD9D9D9),
+                        borderRadius: BorderRadius.circular(12),
+                        border: _understandStatusValue == null
+                            ? Border.all(color: Colors.red.withOpacity(0.5), width: 2)
+                            : null,
+                      ),
                       child: Column(
                         children: [
                           _buildRadioOption(1, "100%", _understandStatusValue, (v) => setState(() => _understandStatusValue = v)),
@@ -237,7 +325,9 @@ class _ShareViewState extends State<ShareView> {
                         child: ElevatedButton(
                           onPressed: _shareToSocialMedia,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF8FA37E),
+                            backgroundColor: isFormComplete
+                                ? const Color(0xFF8FA37E)
+                                : Colors.grey,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                           ),

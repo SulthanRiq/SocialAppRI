@@ -1,26 +1,17 @@
-// File: lib/features/focs/view/comment_page.dart
-
+// ============================================
+// FILE: features/focs/view/comment_page.dart
+// ============================================
 import 'package:flutter/material.dart';
-import 'package:projek_mobile/features/focs/model/comment.dart';
+import '../../../models/post_model.dart';
+import '../../../models/comment_model.dart';
+import '../../../services/post_service.dart';
 
 class CommentPage extends StatefulWidget {
-  final String postId;
-  final String postUserName;
-  final String postUserAvatar;
-  final String postContent;
-  final String postTime;
-  final String? postImageUrl;
-  final int initialCommentCount;
+  final Post post;
 
   const CommentPage({
     Key? key,
-    required this.postId,
-    required this.postUserName,
-    required this.postUserAvatar,
-    required this.postContent,
-    required this.postTime,
-    this.postImageUrl,
-    required this.initialCommentCount,
+    required this.post,
   }) : super(key: key);
 
   @override
@@ -29,179 +20,113 @@ class CommentPage extends StatefulWidget {
 
 class _CommentPageState extends State<CommentPage> {
   final TextEditingController _commentController = TextEditingController();
-  late List<Comment> comments;
-  bool isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadComments();
-  }
+  final PostService _postService = PostService();
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void dispose() {
     _commentController.dispose();
+    _focusNode.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadComments() async {
-    setState(() => isLoading = true);
-
-    // Simulate loading delay
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    // Load dummy comments
-    comments = Comment.dummyComments(widget.postId);
-
-    setState(() => isLoading = false);
-  }
-
-  void _addComment() {
-    if (_commentController.text.trim().isEmpty) return;
-
-    final newComment = Comment(
-      id: 'c${DateTime.now().millisecondsSinceEpoch}',
-      postId: widget.postId,
-      userName: 'You',
-      userAvatar: 'https://i.pravatar.cc/150?img=1',
-      content: _commentController.text.trim(),
-      time: 'Just now',
-      timestamp: DateTime.now(),
-    );
-
-    setState(() {
-      comments.insert(0, newComment);
-      _commentController.clear();
-    });
-
-    // Hide keyboard
-    FocusScope.of(context).unfocus();
-  }
-
-  void _likeComment(String commentId) {
-    setState(() {
-      final index = comments.indexWhere((c) => c.id == commentId);
-      if (index != -1) {
-        final comment = comments[index];
-        comments[index] = comment.copyWith(
-          isLiked: !comment.isLiked,
-          likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1,
-        );
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFB0BEC5),
+      backgroundColor: const Color(0xFF7A9CA8),
       appBar: AppBar(
         backgroundColor: const Color(0xFF7A9CA8),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context, comments.length),
+          onPressed: () => Navigator.pop(context, true),
         ),
         title: const Text(
           'Comments',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.w500,
           ),
         ),
       ),
       body: Column(
         children: [
-          // Original Post
-          _buildOriginalPost(),
-
-          // Divider
-          Container(
-            height: 8,
-            color: const Color(0xFF9CADB5),
-          ),
-
-          // Comments List
           Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : comments.isEmpty
-                    ? _buildEmptyComments()
-                    : _buildCommentsList(),
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildOriginalPost(),
+                const SizedBox(height: 16),
+                _buildCommentsSection(),
+              ],
+            ),
           ),
+          _buildCommentInput(),
         ],
       ),
-      bottomNavigationBar: _buildCommentInput(),
     );
   }
 
-  // Original Post Card
   Widget _buildOriginalPost() {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: const Color(0xFFD9D9D9),
+      decoration: BoxDecoration(
+        color: const Color(0xFFB0BEC5),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // User Info
           Row(
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundImage: NetworkImage(widget.postUserAvatar),
-                backgroundColor: Colors.grey[300],
+                backgroundImage: NetworkImage(widget.post.userAvatar),
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.postUserName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.post.userName,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  Text(
-                    widget.postTime,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[700],
+                    Text(
+                      widget.post.time,
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-
-          // Post Content
           Text(
-            widget.postContent,
+            widget.post.content,
             style: const TextStyle(
+              color: Colors.black,
               fontSize: 14,
-              color: Colors.black87,
+              height: 1.4,
             ),
           ),
-
-          // Post Image
-          if (widget.postImageUrl != null) ...[
+          if (widget.post.imageUrl != null) ...[
             const SizedBox(height: 12),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
-                widget.postImageUrl!,
+                widget.post.imageUrl!,
                 width: double.infinity,
-                height: 150,
+                height: 200,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 150,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.image, size: 40),
-                  );
-                },
               ),
             ),
           ],
@@ -210,148 +135,156 @@ class _CommentPageState extends State<CommentPage> {
     );
   }
 
-  // Comments List
-  Widget _buildCommentsList() {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: comments.length,
-      itemBuilder: (context, index) {
-        return _buildCommentItem(comments[index]);
-      },
+  Widget _buildCommentsSection() {
+    if (widget.post.comments.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          children: [
+            Icon(
+              Icons.chat_bubble_outline,
+              size: 64,
+              color: Colors.white.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Belum ada komentar',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Jadilah yang pertama berkomentar!',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.5),
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${widget.post.comments.length} Komentar',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...widget.post.comments.map((comment) => _buildCommentCard(comment)),
+      ],
     );
   }
 
-  // Comment Item
-  Widget _buildCommentItem(Comment comment) {
+  Widget _buildCommentCard(Comment comment) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: const Color(0xFFD9D9D9),
-      child: Row(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFB0BEC5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar
-          CircleAvatar(
-            radius: 18,
-            backgroundImage: NetworkImage(comment.userAvatar),
-            backgroundColor: Colors.grey[300],
-          ),
-          const SizedBox(width: 12),
-
-          // Comment Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Username & Time
-                Row(
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundImage: NetworkImage(comment.userAvatar),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       comment.userName,
                       style: const TextStyle(
+                        color: Colors.black,
                         fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(width: 8),
                     Text(
-                      comment.time,
+                      comment.timeAgo,
                       style: TextStyle(
-                        fontSize: 12,
                         color: Colors.grey[600],
+                        fontSize: 11,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-
-                // Comment Text
-                Text(
-                  comment.content,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // Like Button
-                GestureDetector(
-                  onTap: () => _likeComment(comment.id),
-                  child: Row(
-                    children: [
-                      Icon(
-                        comment.isLiked
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        size: 16,
-                        color: comment.isLiked ? Colors.red : Colors.grey[600],
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        comment.likes > 0 ? '${comment.likes}' : 'Like',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color:
-                              comment.isLiked ? Colors.red : Colors.grey[600],
-                          fontWeight: comment.isLiked
-                              ? FontWeight.w600
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Empty Comments State
-  Widget _buildEmptyComments() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            size: 80,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No comments yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
-            ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
-            'Be the first to comment!',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
+            comment.content,
+            style: const TextStyle(
+              color: Colors.black87,
+              fontSize: 13,
+              height: 1.4,
             ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => _handleCommentLike(comment),
+                child: Row(
+                  children: [
+                    Icon(
+                      comment.isLiked ? Icons.favorite : Icons.favorite_border,
+                      size: 16,
+                      color: comment.isLiked ? Colors.red : Colors.grey[600],
+                    ),
+                    if (comment.likeCount > 0) ...[
+                      const SizedBox(width: 4),
+                      Text(
+                        '${comment.likeCount}',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                'Balas',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  // Comment Input Box
   Widget _buildCommentInput() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFD9D9D9),
+        color: const Color(0xFF6B95A8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
+            blurRadius: 8,
             offset: const Offset(0, -2),
           ),
         ],
@@ -359,49 +292,40 @@ class _CommentPageState extends State<CommentPage> {
       child: SafeArea(
         child: Row(
           children: [
-            // Avatar
-            CircleAvatar(
+            const CircleAvatar(
               radius: 18,
-              backgroundImage:
-                  const NetworkImage('https://i.pravatar.cc/150?img=1'),
-              backgroundColor: Colors.grey[300],
+              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=33'),
             ),
             const SizedBox(width: 12),
-
-            // Text Field
             Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: const Color(0xFFB0BEC5),
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: Colors.grey[300]!,
-                    width: 1,
-                  ),
                 ),
                 child: TextField(
                   controller: _commentController,
+                  focusNode: _focusNode,
+                  style: const TextStyle(color: Colors.black),
                   decoration: const InputDecoration(
-                    hintText: 'Add a comment...',
+                    hintText: 'Tulis komentar...',
+                    hintStyle: TextStyle(color: Colors.black54),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 10),
                   ),
                   maxLines: null,
                   textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => _addComment(),
+                  onSubmitted: (_) => _submitComment(),
                 ),
               ),
             ),
             const SizedBox(width: 8),
-
-            // Send Button
             GestureDetector(
-              onTap: _addComment,
+              onTap: _submitComment,
               child: Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF7A9CA8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF5A8090),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -415,5 +339,38 @@ class _CommentPageState extends State<CommentPage> {
         ),
       ),
     );
+  }
+
+  void _submitComment() {
+    if (_commentController.text.trim().isEmpty) return;
+
+    final comment = Comment(
+      id: _postService.generateCommentId(),
+      userName: 'Current User', // TODO: Get from auth services
+      userAvatar: 'https://i.pravatar.cc/150?img=33',
+      content: _commentController.text.trim(),
+      timestamp: DateTime.now(),
+    );
+
+    setState(() {
+      _postService.addComment(widget.post.id, comment);
+      _commentController.clear();
+    });
+
+    _focusNode.unfocus();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Komentar berhasil ditambahkan'),
+        duration: Duration(seconds: 1),
+        backgroundColor: Color(0xFF6B95A8),
+      ),
+    );
+  }
+
+  void _handleCommentLike(Comment comment) {
+    setState(() {
+      comment.toggleLike();
+    });
   }
 }

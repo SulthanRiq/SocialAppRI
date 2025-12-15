@@ -1,30 +1,31 @@
+// ============================================
+// FILE: lib/features/focs/view/focs_page.dart
+// COPY SELURUH ISI INI DAN REPLACE FILE ANDA
+// ============================================
 import 'package:flutter/material.dart';
-// Import widgets
-import 'package:projek_mobile/features/focs/widget/post_card.dart';
-// Import topic filter
-import 'package:projek_mobile/features/focs/view/topic_filter_page.dart';
-// Import inbox
-import 'package:projek_mobile/features/inbox/view/inbox_page.dart';
-// Import comment page
-import 'package:projek_mobile/features/focs/view/comment_page.dart';
+import 'package:get/get.dart';
+
+// Import dari feature focs
+import '../widget/post_card.dart';
+import '../widget/share_bottom_sheet.dart';
+import '../model/post_model.dart';
+import '../controller/focs_controller.dart';
+import '../widget/topic_filter_bottom_sheet.dart';
+
+// Import dari feature lain
 import '../../dashboard/view/dashboard_register_page.dart';
 import '../../notification/view/notification_page.dart';
 import '../../search/view/search_page.dart';
+import '../../inbox/view/inbox_page.dart';
 
-class FocsCScreen extends StatefulWidget {
+class FocsCScreen extends StatelessWidget {
   const FocsCScreen({Key? key}) : super(key: key);
 
   @override
-  State<FocsCScreen> createState() => _FocsCScreenState();
-}
-
-class _FocsCScreenState extends State<FocsCScreen> {
-  bool isFocsMode = true;
-  String selectedTab = 'Focs Mode';
-  Set<String> selectedTopics = {};
-
-  @override
   Widget build(BuildContext context) {
+    // Initialize controller
+    final controller = Get.put(FocsController());
+
     return Scaffold(
       backgroundColor: const Color(0xFF7A9CA8),
       appBar: AppBar(
@@ -43,24 +44,27 @@ class _FocsCScreenState extends State<FocsCScreen> {
         children: [
           Column(
             children: [
-              _buildSearchBar(),
-              _buildTabBar(),
+              _buildSearchBar(controller),
+              _buildTabBar(controller),
               Expanded(
-                child: selectedTab == 'Focs Mode'
-                    ? _buildFocsModeContent()
-                    : _buildReferenceContent(),
+                child: _buildContent(controller),
               ),
             ],
           ),
-          if (isFocsMode) _buildFocusDialog(),
+          // Focus dialog - reactive
+          Obx(() => controller.isFocsMode
+              ? _buildFocusDialog(controller)
+              : const SizedBox.shrink()),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
+      bottomNavigationBar: _buildBottomNavBar(context),
     );
   }
 
-  // Search Bar with Topic Button
-  Widget _buildSearchBar() {
+  // ========================================
+  // SEARCH BAR
+  // ========================================
+  Widget _buildSearchBar(FocsController controller) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -78,6 +82,7 @@ class _FocsCScreenState extends State<FocsCScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
+                      onChanged: (value) => controller.searchPosts(value),
                       decoration: InputDecoration(
                         hintText: 'Search',
                         hintStyle: TextStyle(color: Colors.grey[600]),
@@ -85,65 +90,86 @@ class _FocsCScreenState extends State<FocsCScreen> {
                       ),
                     ),
                   ),
+                  Obx(() => controller.searchQuery.isNotEmpty
+                      ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () => controller.clearSearch(),
+                    color: Colors.grey[600],
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  )
+                      : const SizedBox.shrink()),
                 ],
               ),
             ),
           ),
           const SizedBox(width: 12),
-          _buildTopicButton(),
+          _buildTopicButton(controller),
         ],
       ),
     );
   }
 
-  // Topic Filter Button
-  Widget _buildTopicButton() {
+  // ============================================
+// COPY METHOD INI DAN GANTI DI focs_page.dart
+// Sekitar line 115-143
+// ============================================
+
+  Widget _buildTopicButton(FocsController controller) {
     return GestureDetector(
       onTap: () async {
-        final result = await TopicFilterBottomSheet.show(
-          context,
-          selectedTopics: selectedTopics,
-        );
+        try {
+          // Pastikan context valid
+          final context = Get.context;
+          if (context == null) {
+            print('Context is null');
+            return;
+          }
 
-        if (result != null) {
-          setState(() {
-            selectedTopics = result;
-          });
+          // Panggil TopicFilterBottomSheet
+          final result = await TopicFilterBottomSheet.show(
+            context,
+            selectedTopics: controller.selectedTopics,
+          );
+
+          // Jika user pilih topics dan klik Done
+          if (result != null) {
+            controller.setSelectedTopics(result);
+          }
+        } catch (e) {
+          print('Error showing bottom sheet: $e');
         }
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: const Color(0xFFB0BEC5),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.add, color: Colors.grey[700]),
             const SizedBox(width: 4),
             Text(
               'Topic',
-              style: TextStyle(
-                color: Colors.grey[700],
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey[700], fontSize: 14),
             ),
-            if (selectedTopics.isNotEmpty) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 2,
-                ),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
+            Obx(() => controller.hasSelectedTopics
+                ? Container(
+              margin: const EdgeInsets.only(left: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 18,
+                minHeight: 18,
+              ),
+              child: Center(
                 child: Text(
-                  '${selectedTopics.length}',
+                  '${controller.selectedTopicsCount}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
@@ -151,189 +177,168 @@ class _FocsCScreenState extends State<FocsCScreen> {
                   ),
                 ),
               ),
-            ],
+            )
+                : const SizedBox.shrink()),
           ],
         ),
       ),
     );
   }
-
-  // Tab Bar
-  Widget _buildTabBar() {
+  // ========================================
+  // TAB BAR
+  // ========================================
+  Widget _buildTabBar(FocsController controller) {
     return Container(
       color: const Color(0xFF7A9CA8),
       child: Row(
         children: [
-          _buildTab('Focs Mode', selectedTab == 'Focs Mode'),
-          _buildTab('Reference', selectedTab == 'Reference'),
+          _buildTab(controller, 'Focs Mode'),
+          _buildTab(controller, 'Reference'),
         ],
       ),
     );
   }
 
-  Widget _buildTab(String title, bool isActive) {
+  Widget _buildTab(FocsController controller, String title) {
     return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            selectedTab = title;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: isActive ? Colors.black : Colors.transparent,
-                width: 3,
+      child: Obx(() {
+        final isActive = controller.isTabSelected(title);
+        return GestureDetector(
+          onTap: () => controller.selectTab(title),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: isActive ? Colors.black : Colors.transparent,
+                  width: 3,
+                ),
+              ),
+            ),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 16,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
           ),
-          child: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-            ),
+        );
+      }),
+    );
+  }
+
+  // ========================================
+  // CONTENT
+  // ========================================
+  Widget _buildContent(FocsController controller) {
+    return Obx(() {
+      // Loading state
+      if (controller.isLoading) {
+        return const Center(
+          child: CircularProgressIndicator(
+            color: Colors.white,
           ),
+        );
+      }
+
+      // Error state
+      if (controller.errorMessage != null) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 80,
+                color: Colors.white.withOpacity(0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                controller.errorMessage!,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  fontSize: 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => controller.refreshPosts(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6B95A8),
+                ),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        );
+      }
+
+      final posts = controller.getCurrentPosts();
+
+      // Empty state
+      if (posts.isEmpty) {
+        return _buildEmptyState(
+          controller.searchQuery.isNotEmpty
+              ? 'Tidak ada hasil untuk "${controller.searchQuery}"'
+              : controller.hasSelectedTopics
+              ? 'Tidak ada post untuk topik yang dipilih'
+              : 'Belum ada postingan',
+        );
+      }
+
+      // Posts list
+      return RefreshIndicator(
+        onRefresh: () => controller.refreshPosts(),
+        color: const Color(0xFF7A9CA8),
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: posts.length,
+          itemBuilder: (context, index) {
+            final post = posts[index];
+            return PostCard(
+              post: post,
+              onLike: () => _handleLike(controller, post.id),
+              onComment: () => _handleComment(controller, post.id),
+              onShare: () => _handleShare(controller, post),
+            );
+          },
         ),
+      );
+    });
+  }
+
+  Widget _buildEmptyState(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.inbox_outlined,
+            size: 80,
+            color: Colors.white.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.7),
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
 
-  // Focs Mode Content - Menggunakan PostCard Widget
-  Widget _buildFocsModeContent() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        PostCard(
-          name: 'Martina',
-          time: '1 jam',
-          content: 'Morning Yall, Have a Nice DAYYY !!!',
-          likes: '1.2k',
-          comments: '2',
-          shares: '1',
-          avatarUrl: 'https://i.pravatar.cc/150?img=5',
-          onLike: () => _handleLike('post1'),
-          onComment: () => _handleComment(
-            'post1',
-            userName: 'Martina',
-            userAvatar: 'https://i.pravatar.cc/150?img=5',
-            content: 'Morning Yall, Have a Nice DAYYY !!!',
-            time: '1 jam',
-            commentCount: 2,
-          ),
-          onShare: () => _handleShare('post1'),
-          onTap: () => _openPostDetail('post1'),
-        ),
-        PostCard(
-          name: 'Martina',
-          time: '1 jam',
-          content: 'Damnit i wanna explode rn...',
-          likes: '856',
-          comments: '5',
-          shares: '3',
-          avatarUrl: 'https://i.pravatar.cc/150?img=5',
-          hasImage: true,
-          imageUrl: 'https://picsum.photos/400/300',
-          onLike: () => _handleLike('post2'),
-          onComment: () => _handleComment(
-            'post2',
-            userName: 'Martina',
-            userAvatar: 'https://i.pravatar.cc/150?img=5',
-            content: 'Damnit i wanna explode rn...',
-            time: '1 jam',
-            imageUrl: 'https://picsum.photos/400/300',
-            commentCount: 5,
-          ),
-          onShare: () => _handleShare('post2'),
-        ),
-      ],
-    );
-  }
-
-  // Reference Content - Menggunakan PostCard Widget
-  Widget _buildReferenceContent() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        PostCard(
-          name: 'Emma Watson',
-          time: '3 jam',
-          content:
-              'Wanna cheat tip?  Use the Pomodoro technique with 25-minute focused sessions. Your brain needs breaks to stay sharp !!',
-          likes: '2.5k',
-          comments: '8',
-          shares: '12',
-          avatarUrl: 'https://i.pravatar.cc/150?img=10',
-          category: 'Health',
-          onLike: () => _handleLike('post3'),
-          onComment: () => _handleComment(
-            'post3',
-            userName: 'Emma Watson',
-            userAvatar: 'https://i.pravatar.cc/150?img=10',
-            content:
-                'Wanna cheat tip?  Use the Pomodoro technique with 25-minute focused sessions. Your brain needs breaks to stay sharp !!',
-            time: '3 jam',
-            commentCount: 8,
-          ),
-        ),
-        PostCard(
-          name: 'Zack',
-          time: '8 jam',
-          content: 'Again again n again, undisputed.... #gym',
-          likes: '2.2k',
-          comments: '4',
-          shares: '31',
-          avatarUrl: 'https://i.pravatar.cc/150?img=12',
-          hasImage: true,
-          imageUrl:
-              'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400',
-          category: 'Sports',
-          onLike: () => _handleLike('post4'),
-          onComment: () => _handleComment(
-            'post4',
-            userName: 'Zack',
-            userAvatar: 'https://i.pravatar.cc/150?img=12',
-            content: 'Again again n again, undisputed.... #gym',
-            time: '8 jam',
-            imageUrl:
-                'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400',
-            commentCount: 4,
-          ),
-        ),
-        PostCard(
-          name: 'Sarah',
-          time: '5 jam',
-          content: 'Healty fit checkk :)), get breadfast w me',
-          likes: '17.5k',
-          comments: '10',
-          shares: '31',
-          avatarUrl: 'https://i.pravatar.cc/150?img=25',
-          hasImage: true,
-          imageUrl:
-              'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400',
-          category: 'Food',
-          onLike: () => _handleLike('post5'),
-          onComment: () => _handleComment(
-            'post5',
-            userName: 'Sarah',
-            userAvatar: 'https://i.pravatar.cc/150?img=25',
-            content: 'Healty fit checkk :)), get breadfast w me',
-            time: '5 jam',
-            imageUrl:
-                'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400',
-            commentCount: 10,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Focus Mode Dialog
-  Widget _buildFocusDialog() {
+  // ========================================
+  // FOCUS DIALOG
+  // ========================================
+  Widget _buildFocusDialog(FocsController controller) {
     return Container(
       color: Colors.black.withOpacity(0.5),
       child: Center(
@@ -359,11 +364,7 @@ class _FocsCScreenState extends State<FocsCScreen> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    isFocsMode = false;
-                  });
-                },
+                onPressed: () => controller.dismissFocsMode(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFD6D6D6),
                   foregroundColor: Colors.black,
@@ -390,8 +391,10 @@ class _FocsCScreenState extends State<FocsCScreen> {
     );
   }
 
-  // Bottom Navigation Bar
-  Widget _buildBottomNavBar() {
+  // ========================================
+  // BOTTOM NAVIGATION BAR
+  // ========================================
+  Widget _buildBottomNavBar(BuildContext context) {
     return Container(
       height: 65,
       decoration: BoxDecoration(
@@ -407,59 +410,19 @@ class _FocsCScreenState extends State<FocsCScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildNavItem(Icons.home, false, 0),
-          _buildNavItem(Icons.search, false, 1),
-          _buildNavItem(Icons.add_box, true, 2),
-          _buildNavItem(Icons.notifications, false, 3),
-          _buildNavItem(Icons.chat_bubble, false, 4),
+          _buildNavItem(Icons.home, false, 0, context),
+          _buildNavItem(Icons.search, false, 1, context),
+          _buildNavItem(Icons.add_box, true, 2, context),
+          _buildNavItem(Icons.notifications, false, 3, context),
+          _buildNavItem(Icons.chat_bubble, false, 4, context),
         ],
       ),
     );
   }
 
-  Widget _buildNavItem(IconData icon, bool isActive, int index) {
+  Widget _buildNavItem(IconData icon, bool isActive, int index, BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        if (isActive) return;
-
-        switch (index) {
-          case 0:
-            // Home - Kembali ke HomePage
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                ),
-            );
-            break;
-          case 1:
-            // Search - TODO: Tambahkan navigasi ke SearchScreen
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SearchScreen(),
-              ),
-            );
-            break;
-          case 2:
-            break;
-          case 3:
-            // Notifications - TODO: Tambahkan navigasi ke NotificationScreen
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const NotificationScreen()
-                ),
-            );
-            break;
-          case 4:
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const InboxScreen()),
-            );
-            break;
-        }
-      },
+      onTap: () => _onNavItemTapped(context, index),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
@@ -486,60 +449,104 @@ class _FocsCScreenState extends State<FocsCScreen> {
     );
   }
 
-  // Handler Methods
-  void _handleLike(String postId) {
-    _showSnackBar('Liked post $postId');
-    // TODO: Implement like logic
-  }
+  // ========================================
+  // NAVIGATION HANDLER
+  // ========================================
+  void _onNavItemTapped(BuildContext context, int index) {
+    print('Navbar tapped: index $index');
 
-  void _handleComment(
-    String postId, {
-    required String userName,
-    required String userAvatar,
-    required String content,
-    required String time,
-    String? imageUrl,
-    required int commentCount,
-  }) async {
-    // Navigate to comment page
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CommentPage(
-          postId: postId,
-          postUserName: userName,
-          postUserAvatar: userAvatar,
-          postContent: content,
-          postTime: time,
-          postImageUrl: imageUrl,
-          initialCommentCount: commentCount,
-        ),
-      ),
-    );
+    if (index == 2) {
+      print('Already on Focs page');
+      return;
+    }
 
-    // Update comment count if returned
-    if (result != null && result is int) {
-      _showSnackBar('Comment count updated: $result');
-      // TODO: Update post comment count
+    try {
+      switch (index) {
+        case 0:
+          print('Navigating to Home');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomePage(),
+            ),
+          );
+          break;
+        case 1:
+          print('Navigating to Search');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SearchScreen(),
+            ),
+          );
+          break;
+        case 3:
+          print('Navigating to Notification');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const NotificationScreen()
+            ),
+          );
+          break;
+        case 4:
+          print('Navigating to Inbox');
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const InboxScreen()),
+          );
+          break;
+        default:
+          print('Unknown index: $index');
+      }
+    } catch (e) {
+      print('Navigation error: $e');
+      Get.snackbar(
+        'Error',
+        'Gagal navigasi: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
 
-  void _handleShare(String postId) {
-    _showSnackBar('Share post $postId');
-    // TODO: Implement share functionality
+  // ========================================
+  // INTERACTION HANDLERS
+  // ========================================
+  void _handleLike(FocsController controller, String postId) {
+    controller.likePost(postId);
+
+    Get.snackbar(
+      'Like',
+      'Post liked!',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: const Color(0xFF6B95A8),
+      colorText: Colors.white,
+      duration: const Duration(seconds: 1),
+      margin: const EdgeInsets.all(16),
+    );
   }
 
-  void _openPostDetail(String postId) {
-    _showSnackBar('Opening post $postId details');
-    // TODO: Navigate to post detail screen
+  void _handleComment(FocsController controller, String postId) {
+    Get.snackbar(
+      'Comment',
+      'Comment feature akan segera hadir',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: const Color(0xFF6B95A8),
+      colorText: Colors.white,
+    );
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 1),
-      ),
+  void _handleShare(FocsController controller, Post post) {
+    ShareBottomSheet.show(
+      Get.context!,
+      postId: post.id,
+      content: post.content,
+      imageUrl: post.imageUrl,
+      onShare: () {
+        controller.sharePost(post.id);
+      },
     );
   }
 }

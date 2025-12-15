@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:projek_mobile/features/login/view/login_page.dart';
+import 'package:get/get.dart';
+import '../../../core/controllers/auth_controller.dart';
+import '../../register/widgets/base64_image_widget.dart';
 import 'package:projek_mobile/features/settings/view/settings_page.dart';
 import 'package:projek_mobile/features/dashboard/view/dashboard_register_page.dart';
 
@@ -14,12 +16,15 @@ class ProfileMenuPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AuthController authController = Get.find<AuthController>();
+
     const Color topBarColor = Color(0xFF5E8092);
     const Color cardColor = Color(0xFFE8EEF2);
     const Color accentColor = Color(0xFF36466B);
+    const Color bgColor = Color(0xFFD1DEE4);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFB8C5CC),
+      backgroundColor: bgColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -29,7 +34,13 @@ class ProfileMenuPage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               width: double.infinity,
               child: GestureDetector(
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const HomePage()),
+                  );
+                },
                 child: Row(
                   children: const [
                     Icon(Icons.arrow_back, color: Colors.white),
@@ -64,84 +75,120 @@ class ProfileMenuPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    // ===== PROFILE CARD =====
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 30,
-                                backgroundColor: accentColor,
-                                child: const Icon(
-                                  Icons.person,
-                                  size: 32,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: const [
-                                        Text(
-                                          'Budi Santoso',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        SizedBox(width: 4),
-                                        Icon(
-                                          Icons.male,
-                                          size: 18,
-                                          color: Colors.blueAccent,
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    const Text(
-                                      '@budisantoso',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          const Divider(thickness: 0.7),
-                          const SizedBox(height: 8),
+                    // PROFILE CARD dengan Data Dinamis
+                    Obx(() {
+                      final user = authController.currentUser.value;
+                      final username = user?.username ?? 'User';
+                      final email = user?.email ?? 'email@example.com';
+                      final photoUrl = user?.photoUrl;
 
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(Icons.bar_chart, size: 18),
-                              SizedBox(width: 4),
-                              Text('2 Posts', style: TextStyle(fontSize: 13)),
-                              SizedBox(width: 24),
-                              SizedBox(
-                                height: 14,
-                                child: VerticalDivider(thickness: 0.8),
-                              ),
-                              SizedBox(width: 24),
-                              Text('1,2 k Followers', style: TextStyle(fontSize: 13)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                // Avatar dengan Base64 Image
+                                Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: accentColor,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Base64CircleAvatar(
+                                    base64String: photoUrl,
+                                    radius: 30,
+                                    backgroundColor: accentColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // Username dengan ikon gender (opsional)
+                                      Row(
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              username,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          // Icon gender bisa ditambahkan jika ada di user model
+                                          // const Icon(
+                                          //   Icons.male,
+                                          //   size: 18,
+                                          //   color: Colors.blueAccent,
+                                          // ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                      // Email sebagai subtitle
+                                      Text(
+                                        '@$username',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.black54,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        email,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.black45,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            const Divider(thickness: 0.7),
+                            const SizedBox(height: 8),
+
+                            // Stats (placeholder - bisa diintegrasikan dengan data real)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(Icons.bar_chart, size: 18),
+                                SizedBox(width: 4),
+                                Text(
+                                  '0 Posts',
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                                SizedBox(width: 24),
+                                SizedBox(
+                                  height: 14,
+                                  child: VerticalDivider(thickness: 0.8),
+                                ),
+                                SizedBox(width: 24),
+                                Text(
+                                  '0 Followers',
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
 
                     const SizedBox(height: 24),
 
@@ -204,11 +251,73 @@ class ProfileMenuPage extends StatelessWidget {
                       icon: Icons.logout,
                       title: 'Logout',
                       subtitle: '',
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const LoginPage()),
+                      onTap: () async {
+                        // Show confirmation dialog
+                        final shouldLogout = await showDialog<bool>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Logout'),
+                              content: const Text('Apakah Anda yakin ingin logout?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, false);
+                                  },
+                                  child: const Text('Batal'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, true);
+                                  },
+                                  child: const Text(
+                                    'Logout',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         );
+
+                        // Jika user confirm logout
+                        if (shouldLogout == true && context.mounted) {
+                          try {
+                            // Call logout dari controller
+                            await authController.logout();
+
+                            // Show success message
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Logout berhasil'),
+                                  backgroundColor: Colors.green,
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+
+                            // Navigate ke login dengan delay
+                            await Future.delayed(const Duration(milliseconds: 500));
+
+                            if (context.mounted) {
+                              // Remove all routes and go to login
+                              Navigator.of(context).pushNamedAndRemoveUntil(
+                                '/login',
+                                    (route) => false,
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error: ${e.toString()}'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        }
                       },
                     ),
                   ],
@@ -276,7 +385,7 @@ class ProfileMenuItem extends StatelessWidget {
           ),
         )
             : null,
-        onTap: onTap,
+        onTap: onTap ?? () {},
       ),
     );
   }

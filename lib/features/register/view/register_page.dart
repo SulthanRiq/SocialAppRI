@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:projek_mobile/features/dashboard/view/dashboard_register_page.dart';
+import 'package:get/get.dart';
+import '../../../core/controllers/auth_controller.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Initialize controller
+    final AuthController authController = Get.put(AuthController());
+
     final Color topBarColor = const Color(0xFF0F9D7E); // hijau tosca
     final Color bgColor = const Color(0xFF82AFC3); // biru muda
     final Color buttonYellow = const Color(0xFFE8B44C); // kuning tombol
@@ -26,7 +30,7 @@ class RegisterPage extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () {
-                      Navigator.pop(context); // Kembali ke halaman sebelumnya
+                      Navigator.pop(context);
                     },
                   ),
                   const SizedBox(width: 8),
@@ -50,10 +54,10 @@ class RegisterPage extends StatelessWidget {
                   children: [
                     const SizedBox(height: 24),
 
-                    // FOTO PROFIL dengan icon edit
-                    Stack(
+                    // FOTO PROFIL dengan icon edit dan preview
+                    Obx(() => Stack(
                       children: [
-                        // Circle avatar
+                        // Circle avatar dengan preview
                         Container(
                           width: 140,
                           height: 140,
@@ -64,37 +68,52 @@ class RegisterPage extends StatelessWidget {
                               color: Colors.grey.shade600,
                               width: 4,
                             ),
+                            image: authController.selectedProfileImage.value != null
+                                ? DecorationImage(
+                              image: FileImage(
+                                authController.selectedProfileImage.value!,
+                              ),
+                              fit: BoxFit.cover,
+                            )
+                                : null,
                           ),
-                          child: Icon(
+                          child: authController.selectedProfileImage.value == null
+                              ? Icon(
                             Icons.person,
                             size: 80,
                             color: Colors.grey.shade600,
-                          ),
+                          )
+                              : null,
                         ),
                         // Icon edit (kamera)
                         Positioned(
                           bottom: 0,
                           right: 0,
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: buttonYellow,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 2,
+                          child: GestureDetector(
+                            onTap: () {
+                              authController.showImageSourceDialog(context);
+                            },
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: buttonYellow,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
                               ),
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: Colors.white,
-                              size: 20,
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
                       ],
-                    ),
+                    )),
 
                     const SizedBox(height: 32),
 
@@ -118,6 +137,7 @@ class RegisterPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     TextField(
+                      controller: authController.usernameController,
                       decoration: InputDecoration(
                         hintText: 'username',
                         hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -156,6 +176,7 @@ class RegisterPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     TextField(
+                      controller: authController.emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         hintText: 'email',
@@ -194,8 +215,9 @@ class RegisterPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    TextField(
-                      obscureText: true,
+                    Obx(() => TextField(
+                      controller: authController.passwordController,
+                      obscureText: !authController.isPasswordVisible.value,
                       decoration: InputDecoration(
                         hintText: 'password',
                         hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -209,8 +231,17 @@ class RegisterPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
                         ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            authController.isPasswordVisible.value
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.grey,
+                          ),
+                          onPressed: authController.togglePasswordVisibility,
+                        ),
                       ),
-                    ),
+                    )),
 
                     const SizedBox(height: 20),
 
@@ -233,8 +264,9 @@ class RegisterPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    TextField(
-                      obscureText: true,
+                    Obx(() => TextField(
+                      controller: authController.confirmPasswordController,
+                      obscureText: !authController.isConfirmPasswordVisible.value,
                       decoration: InputDecoration(
                         hintText: 'confirm password',
                         hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -248,24 +280,30 @@ class RegisterPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
                         ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            authController.isConfirmPasswordVisible.value
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.grey,
+                          ),
+                          onPressed: authController.toggleConfirmPasswordVisibility,
+                        ),
                       ),
-                    ),
+                    )),
 
                     const SizedBox(height: 32),
 
-                    // TOMBOL SIGN UP
-                    SizedBox(
+                    // TOMBOL SIGN UP dengan Loading
+                    Obx(() => SizedBox(
                       width: 160,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // TODO: aksi sign up
-                          Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const HomePage(),
-                              ),
-                          );
+                        onPressed: authController.isLoading.value
+                            ? null
+                            : () {
+                          // Pass context ke register function
+                          authController.register(context);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: buttonYellow,
@@ -274,7 +312,16 @@ class RegisterPage extends StatelessWidget {
                           ),
                           elevation: 4,
                         ),
-                        child: const Text(
+                        child: authController.isLoading.value
+                            ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                            : const Text(
                           'SIGN UP',
                           style: TextStyle(
                             fontSize: 16,
@@ -284,55 +331,7 @@ class RegisterPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // GARIS PEMBATAS
-                    SizedBox(
-                      width: 200,
-                      child: Divider(
-                        thickness: 1,
-                        color: Colors.white.withOpacity(0.7),
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    const Text(
-                      'or Sign In with',
-                      style: TextStyle(color: Colors.white, fontSize: 13),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // GOOGLE & FACEBOOK
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            // TODO: login dengan Google
-                          },
-                          child: Image.asset(
-                            'assets/icons/google.png',
-                            width: 36,
-                            height: 36,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        InkWell(
-                          onTap: () {
-                            // TODO: login dengan Facebook
-                          },
-                          child: Image.asset(
-                            'assets/icons/facebook.png',
-                            width: 36,
-                            height: 36,
-                          ),
-                        ),
-                      ],
-                    ),
+                    )),
 
                     const SizedBox(height: 40),
                   ],

@@ -1,69 +1,188 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
+import '../models/post_model.dart';
+import 'auth_controller.dart';
 
 class PostController extends GetxController {
-  // Map untuk menyimpan jumlah like setiap post berdasarkan ID
-  final RxMap<String, int> postLikes = <String, int>{}.obs;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AuthController _auth = Get.find<AuthController>();
+  StreamSubscription? _postSub;
 
-  // Map untuk menyimpan status apakah user sudah like post ini
-  final RxMap<String, bool> userLikedPosts = <String, bool>{}.obs;
+  // STATE
+  RxList<PostModel> posts = <PostModel>[].obs;
+  RxBool isLoading = false.obs;
+  RxBool isPosting = false.obs;
 
-  // Fungsi untuk set initial likes dari string (misal: "20.5k" -> 20500)
-  void setInitialLikes(String postId, String likesString) {
-    if (!postLikes.containsKey(postId)) {
-      postLikes[postId] = _parseLikesString(likesString);
-      userLikedPosts[postId] = false;
+  @override
+  void onInit() {
+    super.onInit();
+    fetchPosts();
+  }
+
+  // ================= FETCH POSTS (REALTIME)
+  void fetchPosts() {
+    _postSub?.cancel();
+    posts.clear();
+    isLoading.value = true;
+
+    _postSub = _firestore
+        .collection('posts')
+        .orderBy('createdAtClient', descending: true)
+        .snapshots()
+        .listen(
+          (snapshot) {
+        isLoading.value = false;
+
+        for (var change in snapshot.docChanges) {
+          final post = PostModel.fromFirestore(change.doc);
+
+          if (change.type == DocumentChangeType.added) {
+            if (!posts.any((p) => p.id == post.id)) {
+              posts.insert(0, post);
+            }
+          }
+          else if (change.type == DocumentChangeType.modified) {
+            final index = posts.indexWhere((p) => p.id == post.id);
+            if (index != -1) posts[index] = post;
+          }
+          else if (change.type == DocumentChangeType.removed) {
+            posts.removeWhere((p) => p.id == post.id);
+          }
+        }
+      },
+      onError: (error) {
+        isLoading.value = false;
+        Get.snackbar(
+          'Error',
+          'Gagal memuat posts: $error',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      },
+    );
+  }
+
+  // ================= CREATE POST
+  Future<void> createPost({
+    required String content,
+    File? imageFile,
+  }) async {
+    try {
+      isPosting.value = true;
+
+      final user = _auth.currentUser.value;
+      if (user == null) throw 'User not logged in';
+
+      String? base64Image;
+      if (imageFile != null) {
+        final bytes = await imageFile.readAsBytes();
+        base64Image = base64Encode(bytes);
+      }
+
+      await _firestore.collection('posts').add({
+        'userId': user.uid,
+        'username': user.username,
+        'userPhoto': user.photoUrl,
+        'content': content,
+        'imageBase64': base64Image,
+        'likes': 0,
+        'likedBy': [],
+        'createdAt': FieldValue.serverTimestamp(),
+        'createdAtClient': DateTime.now().millisecondsSinceEpoch,
+      });
+
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Gagal membuat post: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isPosting.value = false;
     }
   }
 
-  // Fungsi untuk toggle like
-  void toggleLike(String postId) {
-    if (!postLikes.containsKey(postId)) {
-      postLikes[postId] = 0;
-      userLikedPosts[postId] = false;
+  // ================= LIKE / UNLIKE POST
+  Future<void> toggleLike(PostModel post) async {
+    final user = _auth.currentUser.value;
+    if (user == null) {
+      Get.snackbar(
+        'Error',
+        'Anda harus login terlebih dahulu',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
     }
 
-    if (userLikedPosts[postId] == true) {
-      // Unlike
-      postLikes[postId] = postLikes[postId]! - 1;
-      userLikedPosts[postId] = false;
-    } else {
-      // Like
-      postLikes[postId] = postLikes[postId]! + 1;
-      userLikedPosts[postId] = true;
+    // ✅ VALIDASI: User tidak bisa like postingan sendiri
+    if (user.uid == post.userId) {
+      Get.snackbar(
+        'Tidak Diizinkan',
+        'Anda tidak bisa like postingan sendiri',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    try {
+      final postRef = _firestore.collection('posts').doc(post.id);
+      final isLiked = post.likedBy.contains(user.uid);
+
+      // ✅ Toggle like/unlike
+      await postRef.update({
+        'likes': FieldValue.increment(isLiked ? -1 : 1),
+        'likedBy': isLiked
+            ? FieldValue.arrayRemove([user.uid])
+            : FieldValue.arrayUnion([user.uid]),
+      });
+
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Gagal melakukan like: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
-  // Fungsi untuk get formatted likes (misal: 20500 -> "20.5k")
-  String getFormattedLikes(String postId) {
-    if (!postLikes.containsKey(postId)) return '0';
-
-    int likes = postLikes[postId]!;
-    if (likes >= 1000000) {
-      return '${(likes / 1000000).toStringAsFixed(1)}M';
-    } else if (likes >= 1000) {
-      return '${(likes / 1000).toStringAsFixed(1)}k';
-    } else {
-      return likes.toString();
-    }
+  // ✅ CEK APAKAH USER SUDAH LIKE POST
+  bool isPostLikedByCurrentUser(PostModel post) {
+    final user = _auth.currentUser.value;
+    if (user == null) return false;
+    return post.likedBy.contains(user.uid);
   }
 
-  // Fungsi untuk check apakah user sudah like post ini
-  bool isLiked(String postId) {
-    return userLikedPosts[postId] ?? false;
+  // ✅ CEK APAKAH POST MILIK USER SENDIRI
+  bool isOwnPost(PostModel post) {
+    final user = _auth.currentUser.value;
+    if (user == null) return false;
+    return user.uid == post.userId;
   }
 
-  // Helper: Parse string like "20.5k" atau "150.2k" ke integer
-  int _parseLikesString(String likesStr) {
-    String cleaned = likesStr.toLowerCase().replaceAll(',', '.');
+  // ================= DELETE POST (OWNER ONLY)
+  Future<void> deletePost(PostModel post) async {
+    final user = _auth.currentUser.value;
+    if (user == null || user.uid != post.userId) return;
 
-    if (cleaned.contains('m')) {
-      double value = double.tryParse(cleaned.replaceAll('m', '')) ?? 0;
-      return (value * 1000000).toInt();
-    } else if (cleaned.contains('k')) {
-      double value = double.tryParse(cleaned.replaceAll('k', '')) ?? 0;
-      return (value * 1000).toInt();
-    } else {
-      return int.tryParse(cleaned) ?? 0;
-    }
+    await _firestore.collection('posts').doc(post.id).delete();
+  }
+
+  // ================= REFRESH POSTS
+  void refreshPosts() {
+    fetchPosts();
+  }
+
+  // ================= CLEAR (LOGOUT)
+  void clearPosts() {
+    _postSub?.cancel();
+    posts.clear();
+  }
+
+  @override
+  void onClose() {
+    _postSub?.cancel();
+    super.onClose();
   }
 }

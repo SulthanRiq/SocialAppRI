@@ -1,6 +1,12 @@
+// Create Post Page
+
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:projek_mobile/core/controllers/post_controller.dart';
+import '../../../core/controllers/auth_controller.dart';
+import '../../register/widgets/base64_image_widget.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -14,6 +20,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   final ImagePicker _picker = ImagePicker();
   File? _selectedImage;
   bool _isPosting = false;
+
+  final AuthController authController = Get.put(AuthController());
+  final PostController postController = Get.find<PostController>();
 
   @override
   void dispose() {
@@ -91,35 +100,23 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     });
   }
 
-  // Fungsi untuk posting (simulasi)
+  // Fungsi untuk posting
   Future<void> _handlePost() async {
-    if (_postController.text.trim().isEmpty && _selectedImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tulis sesuatu atau tambahkan foto!'),
-        ),
-      );
-      return;
-    }
+    if (_postController.text.trim().isEmpty && _selectedImage == null) return;
 
-    setState(() {
-      _isPosting = true;
-    });
-
-    // Simulasi posting (ganti dengan API call)
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() {
-      _isPosting = false;
-    });
+    await postController.createPost(
+      content: _postController.text.trim(),
+      imageFile: _selectedImage,
+    );
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Post berhasil dibuat!')),
-      );
       Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Post berhasil dibuat')),
+      );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -194,33 +191,37 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Header dengan foto profil
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const CircleAvatar(
-                          radius: 22,
-                          backgroundImage: NetworkImage(
-                            'https://i.pravatar.cc/150?img=11',
+                    Obx(() {
+                      final user = authController.currentUser.value;
+                      final photoUrl = user?.photoUrl;
+
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Base64CircleAvatar(
+                            base64String: photoUrl,
+                            radius: 24,
+                            backgroundColor: Colors.grey.shade300,
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextField(
-                            controller: _postController,
-                            maxLines: null,
-                            decoration: const InputDecoration(
-                              hintText: "What's happening?",
-                              hintStyle: TextStyle(
-                                color: Colors.black38,
-                                fontSize: 16,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextField(
+                              controller: _postController,
+                              maxLines: null,
+                              decoration: const InputDecoration(
+                                hintText: "What's happening?",
+                                hintStyle: TextStyle(
+                                  color: Colors.black38,
+                                  fontSize: 16,
+                                ),
+                                border: InputBorder.none,
                               ),
-                              border: InputBorder.none,
+                              style: const TextStyle(fontSize: 16),
                             ),
-                            style: const TextStyle(fontSize: 16),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      );
+                    }),
 
                     const SizedBox(height: 16),
 

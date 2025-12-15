@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:projek_mobile/features/register/view/register_page.dart';
 import '../../dashboard/view/dashboard_content_page.dart';
+import '../../../core/controllers/auth_controller.dart';
+import 'package:get/get.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final AuthController authController = Get.put(AuthController());
+
     final Color topBarColor = const Color(0xFF7A5A2F);   // coklat
     final Color bgColor = const Color(0xFF82AFC3);       // biru muda
     final Color accentGreen = const Color(0xFF7ED957);   // hijau teks
@@ -66,69 +70,32 @@ class LoginPage extends StatelessWidget {
                     const SizedBox(height: 32),
 
                     // FIELD EMAIL
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.alternate_email, size: 18),
-                          SizedBox(width: 6),
-                          Text(
-                            'Email or Username',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 6),
+                    _label(Icons.alternate_email, 'Email'),
                     TextField(
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
+                      controller: authController.emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: _inputDecoration(),
                     ),
 
                     const SizedBox(height: 16),
 
                     // FIELD PASSWORD
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.lock_outline, size: 18),
-                          SizedBox(width: 6),
-                          Text(
-                            'Password',
-                            style: TextStyle(fontSize: 12),
+                    _label(Icons.lock_outline, 'Password'),
+                    Obx(() => TextField(
+                      controller: authController.passwordController,
+                      obscureText: !authController.isPasswordVisible.value,
+                      decoration: _inputDecoration(
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            authController.isPasswordVisible.value
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide.none,
+                          onPressed:
+                          authController.togglePasswordVisibility,
                         ),
                       ),
-                    ),
+                    )),
 
                     const SizedBox(height: 8),
 
@@ -138,6 +105,9 @@ class LoginPage extends StatelessWidget {
                       child: TextButton(
                         onPressed: () {
                           // TODO: aksi lupa password
+                          authController.resetPassword(
+                              authController.emailController.text.trim(),
+                          );
                         },
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
@@ -157,36 +127,34 @@ class LoginPage extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     // TOMBOL LOGIN
-                    SizedBox(
+                    Obx(() => SizedBox(
                       width: 140,
                       height: 46,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // TODO: aksi login
-                          Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const DashboardView()
-                              ),
-                          );
-                        },
+                        onPressed: authController.isLoading.value
+                            ? null
+                            : authController.login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: buttonGreen,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          elevation: 2,
                         ),
-                        child: const Text(
+                        child: authController.isLoading.value
+                            ? const CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        )
+                            : const Text(
                           'LOGIN',
                           style: TextStyle(
                             fontSize: 16,
                             letterSpacing: 1.2,
-                            color: Colors.white
+                            color: Colors.white,
                           ),
                         ),
                       ),
-                    ),
+                    )),
 
                     const SizedBox(height: 12),
 
@@ -259,6 +227,7 @@ class LoginPage extends StatelessWidget {
                         InkWell(
                           onTap: () {
                             // TODO: login dengan Facebook
+                            authController.loginWithFacebook();
                           },
                           child: Image.asset(
                             'assets/icons/facebook.png',
@@ -279,4 +248,32 @@ class LoginPage extends StatelessWidget {
       ),
     );
   }
+
+  Widget _label(IconData icon, String text) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Row(
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 6),
+          Text(text, style: const TextStyle(fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration({Widget? suffixIcon}) {
+    return InputDecoration(
+      filled: true,
+      fillColor: Colors.white,
+      suffixIcon: suffixIcon,
+      contentPadding:
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(6),
+        borderSide: BorderSide.none,
+      ),
+    );
+  }
+
 }

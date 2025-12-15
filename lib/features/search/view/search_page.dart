@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 // Import custom bottom navbar
 import 'package:projek_mobile/common/widgets/custom_bottom_navbar.dart';
 import '../../dashboard/view/dashboard_register_page.dart';
 import '../../focs/view/focs_page.dart';
 import '../../notification/view/notification_page.dart';
 import '../../inbox/view/inbox_page.dart';
+import '../../profile/view/profile.dart';
+import '../../../core/controllers/auth_controller.dart';
+import '../../register/widgets/base64_image_widget.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -16,6 +20,8 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   int _selectedIndex = 1; // Index untuk Search di bottom nav
   int _selectedTabIndex = 0; // Index untuk tab (Untuk Anda / Sedang Tren)
+
+  final AuthController authController = Get.put(AuthController());
 
   @override
   Widget build(BuildContext context) {
@@ -29,27 +35,39 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Column(
           children: [
             // TOP BAR dengan foto profil
-            Container(
-              height: 70,
-              width: double.infinity,
-              color: topBarColor,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  // Foto profil
-                  GestureDetector(
-                    onTap: () {
-                      // Navigasi ke profile
-                    },
-                    child: const CircleAvatar(
-                      radius: 26,
-                      backgroundColor: Colors.white,
-                      backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+            Obx(() {
+              final user = authController.currentUser.value;
+              final photoUrl = user?.photoUrl;
+
+              return Container(
+                height: 70,
+                width: double.infinity,
+                color: topBarColor,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    // Foto profil
+                    GestureDetector(
+                      onTap: () {
+                        // Navigasi ke profile
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileMenuPage(),
+                          ),
+                        );
+                      },
+                      child: Base64CircleAvatar(
+                        base64String: photoUrl,
+                        radius: 24,
+                        backgroundColor: Colors.grey.shade300,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
+                  ],
+                ),
+              );
+            }),
+
 
             // SEARCH BAR
             Container(

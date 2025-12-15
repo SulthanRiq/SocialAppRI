@@ -1,102 +1,56 @@
 import 'package:flutter/material.dart';
-import 'package:projek_mobile/features/login/view/login_page.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-//tes
+import 'package:get/get.dart';
+import 'package:projek_mobile/core/controllers/auth_controller.dart';
+import 'package:projek_mobile/core/controllers/post_controller.dart';
+// Import pages
+import 'features/login/view/login_page.dart';
+import 'features/register/view/register_page.dart';
+import 'features/dashboard/view/dashboard_register_page.dart';
 
-Future<void> main() async {
-  // Fungsi utama yang pertama kali dijalankan
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const MyApp()); // Menjalankan widget MyApp
+
+  // Initialize Firebase
+  await Firebase.initializeApp();
+
+  Get.put(AuthController());
+  Get.put(PostController());
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // Widget utama dari aplikasi
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      // Judul aplikasi
-      title: 'Flutter Demo',
-
-      // Tema aplikasi
+    return GetMaterialApp(
+      title: 'Social App',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // Membuat warna tema berdasarkan seedColor
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true, // Menggunakan Material Design versi 3
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
       ),
 
-      // Halaman pertama yang ditampilkan saat aplikasi dibuka
-      home: const LoginPage(),
-    );
-  }
-}
+      // Initial route
+      initialRoute: '/login',
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // Variabel title untuk ditampilkan di AppBar
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-// State dari MyHomePage → tempat menyimpan data yang bisa berubah
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0; // Variabel untuk menyimpan angka
-
-  // Fungsi untuk menambah angka counter
-  void _incrementCounter() {
-    setState(() {
-      // setState memberi tahu Flutter agar UI di-update
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Membangun UI halaman
-    return Scaffold(
-      // BAGIAN ATAS APLIKASI
-      appBar: AppBar(
-        // Warna background AppBar berdasarkan tema
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-
-        // Judul AppBar berasal dari widget.title
-        title: Text(widget.title),
-      ),
-
-      // BAGIAN TENGAH / BODY APLIKASI
-      body: Center(
-        // Center = meletakkan child di tengah
-        child: Column(
-          // Column = menata widget secara vertikal
-          mainAxisAlignment: MainAxisAlignment.center, // posisi di tengah
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-
-            // Menampilkan angka counter
-            Text(
-              '$_counter', // Mengambil nilai counter
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+      // Define routes
+      getPages: [
+        GetPage(
+          name: '/login',
+          page: () => const LoginPage(),
         ),
-      ),
-
-      // TOMBOL BULAT DI KANAN BAWAH
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter, // Jalankan fungsi tambah counter
-        tooltip: 'Increment', // Tooltip saat tombol ditekan
-        child: const Icon(Icons.add), // Ikon tanda +
-      ),
+        GetPage(
+          name: '/register',
+          page: () => const RegisterPage(),
+        ),
+        GetPage(
+          name: '/home',
+          page: () => const HomePage(),
+        ),
+      ],
     );
   }
 }

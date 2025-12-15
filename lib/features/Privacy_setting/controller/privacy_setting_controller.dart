@@ -1,16 +1,19 @@
 import 'package:get/get.dart';
 
 class PrivacyController extends GetxController {
-  // DATA DUMMY – nanti bisa kamu ganti dari API / local storage
-  final interests = <String>['Technology', 'Fitness', 'Food'].obs;
+  // ======= DATA ==========
+  final RxList<String> interests = <String>[
+    'Technology',
+    'Fitness',
+    'Food',
+  ].obs;
 
-  final isNudgeActive = true.obs;
-  final currentReminders = 1.obs;
+  final RxBool isNudgeActive = true.obs;
+  final RxInt currentReminders = 1.obs;
+  final RxInt lastUpdatedDaysAgo = 2.obs;
+  final RxInt privacyScore = 78.obs;
 
-  final lastUpdatedDaysAgo = 2.obs;
-  final privacyScore = 78.obs;
-
-  // ====== ACTIONS (sementara hanya print / snackbar) ======
+  // ====== ACTIONS ======
   void onManageTopics() {
     Get.snackbar('Manage Topics', 'Buka pengaturan topik & interest.');
   }
@@ -24,7 +27,7 @@ class PrivacyController extends GetxController {
   }
 
   void onManagePrivacy() {
-    Get.snackbar('Privacy Control', 'Buka pengaturan data & permission.');
+    Get.toNamed('/privacy-control');  
   }
 
   void onOpenPrivacyPolicy() {
@@ -37,5 +40,11 @@ class PrivacyController extends GetxController {
 
   void onOpenYourRights() {
     Get.snackbar('Your Rights', 'Buka halaman Your Rights.');
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Bisa tambahkan inisialisasi dari storage / API di sini
   }
 }

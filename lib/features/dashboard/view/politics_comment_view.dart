@@ -13,7 +13,7 @@ class PoliticsCommentView extends StatefulWidget {
 
 class _PoliticsCommentViewState extends State<PoliticsCommentView> {
   final TextEditingController _commentController = TextEditingController();
-  late final CommentController _controller;
+  late CommentController _controller = Get.find();
 
   @override
   void initState() {

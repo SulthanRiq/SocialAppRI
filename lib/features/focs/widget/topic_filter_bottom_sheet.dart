@@ -20,6 +20,8 @@ class TopicFilterBottomSheet extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      isDismissible: true,
+      enableDrag: true,
       builder: (context) => TopicFilterBottomSheet(
         initialSelectedTopics: selectedTopics,
       ),
@@ -35,7 +37,7 @@ class _TopicFilterBottomSheetState extends State<TopicFilterBottomSheet> {
     'Technology': const Color(0xFFB8860B), // Gold/Brown
     'Sports': const Color(0xFF6B9B7F), // Green
     'Design': const Color(0xFF9B8BB3), // Purple
-    'Bussiness': const Color(0xFF8FA870), // Olive green
+    'Business': const Color(0xFF8FA870), // Olive green - Fixed typo
     'Politics': const Color(0xFF4A3A3A), // Dark brown
     'Science': const Color(0xFF2B5F75), // Teal blue
     'Health': const Color(0xFFA97676), // Dusty rose
@@ -250,7 +252,7 @@ class _TopicFilterBottomSheetState extends State<TopicFilterBottomSheet> {
         return const Color(0xFF2F4F2F); // Dark green
       case 'Design':
         return const Color(0xFFDDA0DD); // Plum
-      case 'Bussiness':
+      case 'Business': // Fixed typo
         return const Color(0xFFE8F5E9); // Light green
       case 'Politics':
         return const Color(0xFFBC8F8F); // Rosy brown

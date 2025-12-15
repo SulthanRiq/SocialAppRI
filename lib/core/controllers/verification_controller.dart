@@ -16,7 +16,7 @@ class VerificationController extends GetxController {
     if (readStatus.value == null || understandingLevel.value == null) {
       Get.snackbar(
         'Peringatan',
-        'Mohon jawab semua pertanyaan verifikasi',
+        'Mohon jawab semua pertanyaan verifikasi', //error handling
         snackPosition: SnackPosition.BOTTOM,
       );
       return null;

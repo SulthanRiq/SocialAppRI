@@ -5,6 +5,12 @@ import '../../register/widgets/base64_image_widget.dart';
 import 'package:projek_mobile/features/settings/view/settings_page.dart';
 import 'package:projek_mobile/features/dashboard/view/dashboard_register_page.dart';
 
+// IMPORT HELP PAGE
+import 'package:projek_mobile/features/help/view/help_faq_page.dart';
+
+// ✅ IMPORT POST PAGE
+import 'package:projek_mobile/features/post/view/manage_post_page.dart';
+
 class ProfileMenuPage extends StatelessWidget {
   const ProfileMenuPage({super.key});
 
@@ -22,7 +28,7 @@ class ProfileMenuPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // TOP BAR dengan fungsi back
+            // ===== TOP BAR =====
             Container(
               color: topBarColor,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -51,6 +57,7 @@ class ProfileMenuPage extends StatelessWidget {
               ),
             ),
 
+            // ===== CONTENT =====
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -185,25 +192,35 @@ class ProfileMenuPage extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    // MENU LIST
+                    // ===== MENU LIST =====
                     const ProfileMenuItem(
                       icon: Icons.person_outline,
                       title: 'Edit Profile',
                       subtitle: 'Edit profile',
                     ),
                     const SizedBox(height: 12),
+
                     const ProfileMenuItem(
                       icon: Icons.calendar_today_outlined,
                       title: 'Daily Activity',
                       subtitle: 'Track your usage',
                     ),
                     const SizedBox(height: 12),
-                    const ProfileMenuItem(
+
+                    // ✅ POST (SEKARANG BISA DIKLIK)
+                    ProfileMenuItem(
                       icon: Icons.inventory_2_outlined,
                       title: 'Post',
                       subtitle: 'Manage your posts',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ManagePostPage()),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
+
                     ProfileMenuItem(
                       icon: Icons.settings_outlined,
                       title: 'Setting',
@@ -211,19 +228,25 @@ class ProfileMenuPage extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => const SettingsPage(),
-                          ),
+                          MaterialPageRoute(builder: (_) => const SettingsPage()),
                         );
                       },
                     ),
                     const SizedBox(height: 12),
-                    const ProfileMenuItem(
+
+                    ProfileMenuItem(
                       icon: Icons.help_outline,
                       title: 'Help',
                       subtitle: 'FAQ & Support',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const HelpFaqPage()),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
+
                     ProfileMenuItem(
                       icon: Icons.logout,
                       title: 'Logout',

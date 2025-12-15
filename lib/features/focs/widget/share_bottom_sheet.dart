@@ -1,5 +1,6 @@
 // ============================================
 // FILE: lib/features/focs/widget/share_bottom_sheet.dart
+// REVISI - 4 Opsi Sesuai Gambar
 // ============================================
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,14 +21,13 @@ class ShareBottomSheet extends StatelessWidget {
     required this.onShare,
   }) : super(key: key);
 
-  /// Method untuk menampilkan bottom sheet
   static Future<void> show(
-      BuildContext context, {
-        required String postId,
-        required String content,
-        String? imageUrl,
-        required Function() onShare,
-      }) {
+    BuildContext context, {
+    required String postId,
+    required String content,
+    String? imageUrl,
+    required Function() onShare,
+  }) {
     return showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -44,75 +44,53 @@ class ShareBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFFE8F4F8),
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: const Color(0xFFB3D4DB), // Sesuai gambar
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle bar
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[400],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Title
-            const Text(
-              'Bagikan ke',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Share options grid
+            // 4 Share options - Single row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildShareOption(
                   context,
-                  icon: Icons.share,
-                  label: 'Share',
-                  color: const Color(0xFF6B95A8),
-                  onTap: () => _shareGeneral(context),
-                ),
-                _buildShareOption(
-                  context,
-                  icon: Icons.whatshot,
+                  icon: Icons.chat, // WhatsApp icon
                   label: 'WhatsApp',
-                  color: const Color(0xFF25D366),
-                  onTap: () => _shareGeneral(context), // Same as general for now
+                  color: const Color(0xFF25D366), // Hijau WhatsApp
+                  onTap: () => _shareToWhatsApp(context),
                 ),
                 _buildShareOption(
                   context,
-                  icon: Icons.link,
-                  label: 'Copy Link',
-                  color: Colors.grey[700]!,
+                  icon: Icons.facebook,
+                  label: 'Facebook',
+                  color: const Color(0xFF1877F2), // Biru Facebook
+                  onTap: () => _shareToFacebook(context),
+                ),
+                _buildShareOption(
+                  context,
+                  icon: Icons.close, // X icon
+                  label: 'X',
+                  color: const Color(0xFF5A5A5A), // Abu-abu gelap
+                  onTap: () => _shareToTwitter(context),
+                ),
+                _buildShareOption(
+                  context,
+                  icon: Icons.content_copy, // Copy icon
+                  label: 'Salin',
+                  color: Colors.white,
+                  iconColor: Colors.black, // Icon hitam untuk Copy
                   onTap: () => _copyToClipboard(context),
-                ),
-                _buildShareOption(
-                  context,
-                  icon: Icons.more_horiz,
-                  label: 'More',
-                  color: Colors.grey[600]!,
-                  onTap: () => _shareGeneral(context),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -120,26 +98,28 @@ class ShareBottomSheet extends StatelessWidget {
   }
 
   Widget _buildShareOption(
-      BuildContext context, {
-        required IconData icon,
-        required String label,
-        required Color color,
-        required VoidCallback onTap,
-      }) {
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required Color color,
+    Color? iconColor,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Container bulat dengan icon
           Container(
-            width: 60,
-            height: 60,
+            width: 70,
+            height: 70,
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(20), // Rounded square
               boxShadow: [
                 BoxShadow(
-                  color: color.withOpacity(0.3),
+                  color: Colors.black.withOpacity(0.15),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -147,41 +127,166 @@ class ShareBottomSheet extends StatelessWidget {
             ),
             child: Icon(
               icon,
-              color: Colors.white,
-              size: 30,
+              color: iconColor ?? Colors.white,
+              size: 32,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey[700],
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          // Label tidak ditampilkan di UI sesuai gambar
         ],
       ),
     );
   }
 
-  // Share menggunakan native share dialog
-  void _shareGeneral(BuildContext context) async {
-    onShare(); // Increment counter
+  // ========================================
+  // SHARE HANDLERS
+  // ========================================
+
+  /// Share ke WhatsApp
+  void _shareToWhatsApp(BuildContext context) async {
+    onShare();
 
     try {
-      final shareText = '$content\n\nShared from Focs-C App';
+      final shareText =
+          '${content.length > 100 ? content.substring(0, 100) + "..." : content}\n\nShared from Focs-C\nhttps://focs-c.app/post/$postId';
 
       await Share.share(
         shareText,
         subject: 'Check out this post!',
       );
 
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+
+      Get.snackbar(
+        'Berhasil',
+        'Dibagikan ke WhatsApp',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF6B95A8),
+        colorText: Colors.white,
+        icon: const Icon(Icons.check_circle, color: Colors.white),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+
+      Get.snackbar(
+        'Error',
+        'Gagal membagikan',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[400],
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+      );
+    }
+  }
+
+  /// Share ke Facebook
+  void _shareToFacebook(BuildContext context) async {
+    onShare();
+
+    try {
+      final shareText =
+          '${content.length > 100 ? content.substring(0, 100) + "..." : content}\n\nShared from Focs-C\nhttps://focs-c.app/post/$postId';
+
+      await Share.share(
+        shareText,
+        subject: 'Check out this post!',
+      );
+
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+
+      Get.snackbar(
+        'Berhasil',
+        'Dibagikan ke Facebook',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF6B95A8),
+        colorText: Colors.white,
+        icon: const Icon(Icons.check_circle, color: Colors.white),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+
+      Get.snackbar(
+        'Error',
+        'Gagal membagikan',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[400],
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+      );
+    }
+  }
+
+  /// Share ke Twitter/X
+  void _shareToTwitter(BuildContext context) async {
+    onShare();
+
+    try {
+      final shareText =
+          '${content.length > 100 ? content.substring(0, 100) + "..." : content}\n\nShared from Focs-C\nhttps://focs-c.app/post/$postId';
+
+      await Share.share(
+        shareText,
+        subject: 'Check out this post!',
+      );
+
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+
+      Get.snackbar(
+        'Berhasil',
+        'Dibagikan ke X',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF6B95A8),
+        colorText: Colors.white,
+        icon: const Icon(Icons.check_circle, color: Colors.white),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+
+      Get.snackbar(
+        'Error',
+        'Gagal membagikan',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[400],
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+      );
+    }
+  }
+
+  /// Copy link ke clipboard
+  void _copyToClipboard(BuildContext context) {
+    onShare();
+
+    try {
+      final link = 'https://focs-c.app/post/$postId';
+      final copyText =
+          '${content.length > 100 ? content.substring(0, 100) + "..." : content}\n\n$link';
+
+      Clipboard.setData(ClipboardData(text: copyText));
+
       Navigator.pop(context);
 
       Get.snackbar(
         'Berhasil',
-        'Post berhasil dibagikan',
+        'Link berhasil disalin',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: const Color(0xFF6B95A8),
         colorText: Colors.white,
@@ -191,38 +296,15 @@ class ShareBottomSheet extends StatelessWidget {
       );
     } catch (e) {
       Navigator.pop(context);
+
       Get.snackbar(
         'Error',
-        'Gagal membagikan post',
+        'Gagal menyalin link',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red[400],
         colorText: Colors.white,
-        icon: const Icon(Icons.error_outline, color: Colors.white),
         margin: const EdgeInsets.all(16),
       );
     }
-  }
-
-  // Copy link ke clipboard
-  void _copyToClipboard(BuildContext context) {
-    onShare(); // Increment counter
-
-    final link = 'https://focs-c.app/post/$postId';
-    final copyText = '$content\n\n$link';
-
-    Clipboard.setData(ClipboardData(text: copyText));
-
-    Navigator.pop(context);
-
-    Get.snackbar(
-      'Berhasil',
-      'Link berhasil disalin ke clipboard',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF6B95A8),
-      colorText: Colors.white,
-      icon: const Icon(Icons.check_circle, color: Colors.white),
-      margin: const EdgeInsets.all(16),
-      duration: const Duration(seconds: 2),
-    );
   }
 }

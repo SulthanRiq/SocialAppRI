@@ -22,7 +22,8 @@ class PostCard extends StatefulWidget {
   State<PostCard> createState() => _PostCardState();
 }
 
-class _PostCardState extends State<PostCard> with SingleTickerProviderStateMixin {
+class _PostCardState extends State<PostCard>
+    with SingleTickerProviderStateMixin {
   late AnimationController _likeAnimationController;
   late Animation<double> _likeScaleAnimation;
 
@@ -169,7 +170,7 @@ class _PostCardState extends State<PostCard> with SingleTickerProviderStateMixin
               child: CircularProgressIndicator(
                 value: loadingProgress.expectedTotalBytes != null
                     ? loadingProgress.cumulativeBytesLoaded /
-                    loadingProgress.expectedTotalBytes!
+                        loadingProgress.expectedTotalBytes!
                     : null,
                 color: const Color(0xFF7A9CA8),
               ),
@@ -202,11 +203,13 @@ class _PostCardState extends State<PostCard> with SingleTickerProviderStateMixin
   Widget _buildActions() {
     return Row(
       children: [
+        // Like Button
         _buildActionButton(
           icon: widget.post.isLiked ? Icons.favorite : Icons.favorite_border,
           label: widget.post.formattedLikes,
           color: widget.post.isLiked ? Colors.red : Colors.black54,
           onTap: () {
+            print('👍 LIKE TAPPED - Post: ${widget.post.id}');
             widget.onLike();
             if (widget.post.isLiked) {
               _likeAnimationController.forward().then((_) {
@@ -217,18 +220,43 @@ class _PostCardState extends State<PostCard> with SingleTickerProviderStateMixin
           useAnimation: widget.post.isLiked,
         ),
         const SizedBox(width: 20),
+
+        // Comment Button
         _buildActionButton(
           icon: Icons.chat_bubble_outline,
           label: widget.post.formattedComments,
           color: Colors.black54,
-          onTap: widget.onComment,
+          onTap: () {
+            print('💬 COMMENT TAPPED - Post: ${widget.post.id}');
+            widget.onComment();
+          },
         ),
         const SizedBox(width: 20),
-        _buildActionButton(
-          icon: Icons.share_outlined,
-          label: widget.post.formattedShares,
-          color: Colors.black54,
-          onTap: widget.onShare,
+
+        // Share Button - DENGAN POSITION TRACKING
+        Builder(
+          builder: (context) {
+            return _buildActionButton(
+              icon: Icons.share_outlined,
+              label: widget.post.formattedShares,
+              color: Colors.black54,
+              onTap: () {
+                print('🔗 SHARE TAPPED - Post: ${widget.post.id}');
+
+                // Dapatkan posisi button
+                final RenderBox renderBox =
+                    context.findRenderObject() as RenderBox;
+                final position = renderBox.localToGlobal(Offset.zero);
+                final size = renderBox.size;
+
+                print('Button position: $position');
+                print('Button size: $size');
+
+                // Panggil handler dengan posisi
+                widget.onShare();
+              },
+            );
+          },
         ),
       ],
     );
@@ -247,9 +275,9 @@ class _PostCardState extends State<PostCard> with SingleTickerProviderStateMixin
         children: [
           useAnimation
               ? ScaleTransition(
-            scale: _likeScaleAnimation,
-            child: Icon(icon, color: color, size: 20),
-          )
+                  scale: _likeScaleAnimation,
+                  child: Icon(icon, color: color, size: 20),
+                )
               : Icon(icon, color: color, size: 20),
           const SizedBox(width: 4),
           Text(

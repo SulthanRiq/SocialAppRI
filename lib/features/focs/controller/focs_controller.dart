@@ -1,32 +1,38 @@
-// File: lib/features/focs/controller/focs_controller.dart
+// ============================================
+// FILE: lib/features/focs/controller/focs_controller.dart
+// GANTI YANG LAMA DENGAN INI (GetX Version)
+// ============================================
 
-import 'package:flutter/material.dart';
-import 'package:projek_mobile/features/focs/model/post.dart';
-import 'package:projek_mobile/features/focs/model/topic.dart';
+import 'package:get/get.dart';
+import 'package:projek_mobile/features/focs/model/post_model.dart';
 
-class FocsController extends ChangeNotifier {
-  // State variables
-  bool _isFocsMode = true;
-  String _selectedTab = 'Focs Mode';
-  Set<String> _selectedTopics = {};
-  List<Post> _posts = [];
-  List<Post> _filteredPosts = [];
-  bool _isLoading = false;
-  String? _errorMessage;
+class FocsController extends GetxController {
+  // State variables - Reactive
+  final _isFocsMode = true.obs;
+  final _selectedTab = 'Focs Mode'.obs;
+  final _selectedTopics = <String>{}.obs;
+  final _posts = <Post>[].obs;
+  final _filteredPosts = <Post>[].obs;
+  final _isLoading = false.obs;
+  final _errorMessage = Rxn<String>();
+  final _searchQuery = ''.obs;
 
   // Getters
-  bool get isFocsMode => _isFocsMode;
-  String get selectedTab => _selectedTab;
-  Set<String> get selectedTopics => _selectedTopics;
+  bool get isFocsMode => _isFocsMode.value;
+  String get selectedTab => _selectedTab.value;
+  Set<String> get selectedTopics => _selectedTopics.value;
   List<Post> get posts => _posts;
   List<Post> get filteredPosts => _filteredPosts;
-  bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
+  bool get isLoading => _isLoading.value;
+  String? get errorMessage => _errorMessage.value;
+  String get searchQuery => _searchQuery.value;
   bool get hasSelectedTopics => _selectedTopics.isNotEmpty;
   int get selectedTopicsCount => _selectedTopics.length;
 
   // Constructor - load initial data
-  FocsController() {
+  @override
+  void onInit() {
+    super.onInit();
     loadPosts();
   }
 
@@ -34,28 +40,25 @@ class FocsController extends ChangeNotifier {
 
   /// Toggle focus mode on/off
   void setFocsMode(bool value) {
-    _isFocsMode = value;
-    notifyListeners();
+    _isFocsMode.value = value;
   }
 
   /// Dismiss focus mode dialog
   void dismissFocsMode() {
-    _isFocsMode = false;
-    notifyListeners();
+    _isFocsMode.value = false;
   }
 
   // ==================== TAB MANAGEMENT ====================
 
   /// Switch between 'Focs Mode' and 'Reference' tabs
   void selectTab(String tab) {
-    if (tab != _selectedTab) {
-      _selectedTab = tab;
+    if (tab != _selectedTab.value) {
+      _selectedTab.value = tab;
       _applyFilters();
-      notifyListeners();
     }
   }
 
-  bool isTabSelected(String tab) => _selectedTab == tab;
+  bool isTabSelected(String tab) => _selectedTab.value == tab;
 
   // ==================== TOPIC FILTER ====================
 
@@ -67,21 +70,18 @@ class FocsController extends ChangeNotifier {
       _selectedTopics.add(topic);
     }
     _applyFilters();
-    notifyListeners();
   }
 
   /// Set multiple topics at once (from bottom sheet)
   void setSelectedTopics(Set<String> topics) {
-    _selectedTopics = topics;
+    _selectedTopics.value = topics;
     _applyFilters();
-    notifyListeners();
   }
 
   /// Clear all topic filters
   void clearTopicFilters() {
     _selectedTopics.clear();
     _applyFilters();
-    notifyListeners();
   }
 
   /// Check if topic is selected
@@ -91,24 +91,21 @@ class FocsController extends ChangeNotifier {
 
   /// Load posts (simulate API call)
   Future<void> loadPosts() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+    _isLoading.value = true;
+    _errorMessage.value = null;
 
     try {
       // Simulate network delay
       await Future.delayed(const Duration(milliseconds: 500));
 
       // Load dummy data
-      _posts = Post.dummyPosts();
+      _posts.value = Post.dummyPosts();
       _applyFilters();
 
-      _isLoading = false;
-      notifyListeners();
+      _isLoading.value = false;
     } catch (e) {
-      _isLoading = false;
-      _errorMessage = 'Failed to load posts: ${e.toString()}';
-      notifyListeners();
+      _isLoading.value = false;
+      _errorMessage.value = 'Failed to load posts: ${e.toString()}';
     }
   }
 
@@ -122,7 +119,7 @@ class FocsController extends ChangeNotifier {
     List<Post> tempPosts = List.from(_posts);
 
     // Filter by tab
-    if (_selectedTab == 'Reference') {
+    if (_selectedTab.value == 'Reference') {
       // Only show posts with categories in Reference tab
       tempPosts = tempPosts.where((post) => post.category != null).toList();
     }
@@ -135,7 +132,7 @@ class FocsController extends ChangeNotifier {
       }).toList();
     }
 
-    _filteredPosts = tempPosts;
+    _filteredPosts.value = tempPosts;
   }
 
   /// Get posts for current view
@@ -155,7 +152,6 @@ class FocsController extends ChangeNotifier {
         likes: post.isLiked ? post.likes - 1 : post.likes + 1,
       );
       _applyFilters();
-      notifyListeners();
     }
   }
 
@@ -168,7 +164,6 @@ class FocsController extends ChangeNotifier {
         isBookmarked: !post.isBookmarked,
       );
       _applyFilters();
-      notifyListeners();
     }
   }
 
@@ -181,7 +176,6 @@ class FocsController extends ChangeNotifier {
         comments: post.comments + 1,
       );
       _applyFilters();
-      notifyListeners();
     }
   }
 
@@ -194,18 +188,14 @@ class FocsController extends ChangeNotifier {
         shares: post.shares + 1,
       );
       _applyFilters();
-      notifyListeners();
     }
   }
 
   // ==================== SEARCH ====================
 
-  String _searchQuery = '';
-  String get searchQuery => _searchQuery;
-
   /// Search posts by content or username
   void searchPosts(String query) {
-    _searchQuery = query;
+    _searchQuery.value = query;
 
     if (query.isEmpty) {
       _applyFilters();
@@ -215,17 +205,14 @@ class FocsController extends ChangeNotifier {
             post.userName.toLowerCase().contains(query.toLowerCase());
       }).toList();
 
-      _filteredPosts = filtered;
+      _filteredPosts.value = filtered;
     }
-
-    notifyListeners();
   }
 
   /// Clear search
   void clearSearch() {
-    _searchQuery = '';
+    _searchQuery.value = '';
     _applyFilters();
-    notifyListeners();
   }
 
   // ==================== UTILITY ====================
@@ -233,17 +220,9 @@ class FocsController extends ChangeNotifier {
   /// Reset all filters and state
   void resetAll() {
     _selectedTopics.clear();
-    _searchQuery = '';
-    _selectedTab = 'Focs Mode';
-    _isFocsMode = false;
+    _searchQuery.value = '';
+    _selectedTab.value = 'Focs Mode';
+    _isFocsMode.value = false;
     _applyFilters();
-    notifyListeners();
-  }
-
-  /// Dispose controller
-  @override
-  void dispose() {
-    // Clean up resources if needed
-    super.dispose();
   }
 }

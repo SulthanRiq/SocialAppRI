@@ -1,180 +1,196 @@
-// File: lib/features/focs/widget/post_card.dart
-
+// ============================================
+// FILE: lib/features/focs/widget/post_card.dart
+// ============================================
 import 'package:flutter/material.dart';
+import '../model/post_model.dart';
 
-class PostCard extends StatelessWidget {
-  final String name;
-  final String time;
-  final String content;
-  final String likes;
-  final String comments;
-  final String shares;
-  final String avatarUrl;
-  final bool hasImage;
-  final String? imageUrl;
-  final String? category;
-  final VoidCallback? onLike;
-  final VoidCallback? onComment;
-  final VoidCallback? onShare;
-  final VoidCallback? onTap;
+class PostCard extends StatefulWidget {
+  final Post post;
+  final VoidCallback onLike;
+  final VoidCallback onComment;
+  final VoidCallback onShare;
 
   const PostCard({
     Key? key,
-    required this.name,
-    required this.time,
-    required this.content,
-    required this.likes,
-    required this.comments,
-    required this.shares,
-    required this.avatarUrl,
-    this.hasImage = false,
-    this.imageUrl,
-    this.category,
-    this.onLike,
-    this.onComment,
-    this.onShare,
-    this.onTap,
+    required this.post,
+    required this.onLike,
+    required this.onComment,
+    required this.onShare,
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFD9D9D9),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 12),
-            _buildContent(),
-            if (hasImage && imageUrl != null) ...[
-              const SizedBox(height: 12),
-              _buildImage(),
-            ],
-            const SizedBox(height: 12),
-            _buildActions(),
-          ],
-        ),
+  State<PostCard> createState() => _PostCardState();
+}
+
+class _PostCardState extends State<PostCard> with SingleTickerProviderStateMixin {
+  late AnimationController _likeAnimationController;
+  late Animation<double> _likeScaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _likeAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _likeScaleAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(
+        parent: _likeAnimationController,
+        curve: Curves.easeInOut,
       ),
     );
   }
 
-  // Header: Avatar, Name, Time, Category Badge
+  @override
+  void dispose() {
+    _likeAnimationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFB0BEC5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 12),
+          _buildContent(),
+          if (widget.post.imageUrl != null) ...[
+            const SizedBox(height: 12),
+            _buildImage(),
+          ],
+          const SizedBox(height: 12),
+          _buildActions(),
+        ],
+      ),
+    );
+  }
+
   Widget _buildHeader() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundImage: NetworkImage(avatarUrl),
-              backgroundColor: Colors.grey[300],
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  time,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[700],
-                  ),
-                ),
-              ],
-            ),
-          ],
+        CircleAvatar(
+          radius: 20,
+          backgroundImage: NetworkImage(widget.post.userAvatar),
+          backgroundColor: Colors.grey[300],
         ),
-        // Category badge
-        if (category != null) _buildCategoryBadge(),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    widget.post.userName,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (widget.post.category != null) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7A9CA8),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        widget.post.category!,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              Text(
+                widget.post.time,
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.more_vert, color: Colors.black54),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          onPressed: () {
+            // TODO: Show options menu
+          },
+        ),
       ],
     );
   }
 
-  // Category Badge
-  Widget _buildCategoryBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 4,
-      ),
-      decoration: BoxDecoration(
-        color: _getCategoryColor(category!),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        category!,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  // Content Text
   Widget _buildContent() {
     return Text(
-      content,
+      widget.post.content,
       style: const TextStyle(
+        color: Colors.black,
         fontSize: 14,
-        color: Colors.black87,
         height: 1.4,
       ),
     );
   }
 
-  // Image
   Widget _buildImage() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Image.network(
-        imageUrl!,
+        widget.post.imageUrl!,
         width: double.infinity,
         height: 200,
         fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            height: 200,
+            color: Colors.grey[300],
+            child: Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                    loadingProgress.expectedTotalBytes!
+                    : null,
+                color: const Color(0xFF7A9CA8),
+              ),
+            ),
+          );
+        },
         errorBuilder: (context, error, stackTrace) {
           return Container(
             height: 200,
             color: Colors.grey[300],
             child: const Center(
-              child: Icon(Icons.image, size: 50, color: Colors.grey),
-            ),
-          );
-        },
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Container(
-            height: 200,
-            color: Colors.grey[200],
-            child: Center(
-              child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
-                    : null,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 40, color: Colors.grey),
+                  SizedBox(height: 8),
+                  Text(
+                    'Failed to load image',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
               ),
             ),
           );
@@ -183,80 +199,69 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  // Actions: Like, Comment, Share
   Widget _buildActions() {
     return Row(
       children: [
         _buildActionButton(
-          icon: Icons.favorite,
-          count: likes,
-          onTap: onLike,
+          icon: widget.post.isLiked ? Icons.favorite : Icons.favorite_border,
+          label: widget.post.formattedLikes,
+          color: widget.post.isLiked ? Colors.red : Colors.black54,
+          onTap: () {
+            widget.onLike();
+            if (widget.post.isLiked) {
+              _likeAnimationController.forward().then((_) {
+                _likeAnimationController.reverse();
+              });
+            }
+          },
+          useAnimation: widget.post.isLiked,
         ),
         const SizedBox(width: 20),
         _buildActionButton(
           icon: Icons.chat_bubble_outline,
-          count: comments,
-          onTap: onComment,
+          label: widget.post.formattedComments,
+          color: Colors.black54,
+          onTap: widget.onComment,
         ),
         const SizedBox(width: 20),
         _buildActionButton(
-          icon: Icons.share,
-          count: shares,
-          onTap: onShare,
+          icon: Icons.share_outlined,
+          label: widget.post.formattedShares,
+          color: Colors.black54,
+          onTap: widget.onShare,
         ),
       ],
     );
   }
 
-  // Action Button (Like, Comment, Share)
   Widget _buildActionButton({
     required IconData icon,
-    required String count,
-    VoidCallback? onTap,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+    bool useAnimation = false,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Colors.grey[700]),
+          useAnimation
+              ? ScaleTransition(
+            scale: _likeScaleAnimation,
+            child: Icon(icon, color: color, size: 20),
+          )
+              : Icon(icon, color: color, size: 20),
           const SizedBox(width: 4),
           Text(
-            count,
+            label,
             style: TextStyle(
-              color: Colors.grey[700],
-              fontSize: 13,
+              color: color,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
       ),
     );
-  }
-
-  // Helper: Get category color
-  Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'health':
-        return Colors.red.shade400;
-      case 'sports':
-        return Colors.blue.shade400;
-      case 'food':
-        return Colors.orange.shade400;
-      case 'tech':
-      case 'technology':
-        return Colors.purple.shade400;
-      case 'design':
-        return Colors.pink.shade400;
-      case 'business':
-      case 'bussiness':
-        return Colors.green.shade400;
-      case 'politics':
-        return Colors.brown.shade400;
-      case 'science':
-        return Colors.teal.shade400;
-      case 'gaming':
-        return Colors.cyan.shade400;
-      default:
-        return Colors.grey.shade400;
-    }
   }
 }

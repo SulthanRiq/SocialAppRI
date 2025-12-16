@@ -11,6 +11,7 @@ import '../widget/share_bottom_sheet.dart';
 import '../model/post_model.dart';
 import '../controller/focs_controller.dart';
 import '../widget/topic_filter_bottom_sheet.dart';
+import '../widget/share_popup_overlay.dart';
 
 // Import dari feature lain
 import '../../dashboard/view/dashboard_register_page.dart';
@@ -92,12 +93,12 @@ class FocsCScreen extends StatelessWidget {
                   ),
                   Obx(() => controller.searchQuery.isNotEmpty
                       ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () => controller.clearSearch(),
-                    color: Colors.grey[600],
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  )
+                          icon: const Icon(Icons.clear),
+                          onPressed: () => controller.clearSearch(),
+                          color: Colors.grey[600],
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        )
                       : const SizedBox.shrink()),
                 ],
               ),
@@ -157,33 +158,35 @@ class FocsCScreen extends StatelessWidget {
             ),
             Obx(() => controller.hasSelectedTopics
                 ? Container(
-              margin: const EdgeInsets.only(left: 6),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: const BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
-              ),
-              constraints: const BoxConstraints(
-                minWidth: 18,
-                minHeight: 18,
-              ),
-              child: Center(
-                child: Text(
-                  '${controller.selectedTopicsCount}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            )
+                    margin: const EdgeInsets.only(left: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${controller.selectedTopicsCount}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  )
                 : const SizedBox.shrink()),
           ],
         ),
       ),
     );
   }
+
   // ========================================
   // TAB BAR
   // ========================================
@@ -285,8 +288,8 @@ class FocsCScreen extends StatelessWidget {
           controller.searchQuery.isNotEmpty
               ? 'Tidak ada hasil untuk "${controller.searchQuery}"'
               : controller.hasSelectedTopics
-              ? 'Tidak ada post untuk topik yang dipilih'
-              : 'Belum ada postingan',
+                  ? 'Tidak ada post untuk topik yang dipilih'
+                  : 'Belum ada postingan',
         );
       }
 
@@ -420,7 +423,8 @@ class FocsCScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(IconData icon, bool isActive, int index, BuildContext context) {
+  Widget _buildNavItem(
+      IconData icon, bool isActive, int index, BuildContext context) {
     return GestureDetector(
       onTap: () => _onNavItemTapped(context, index),
       child: Container(
@@ -484,9 +488,7 @@ class FocsCScreen extends StatelessWidget {
           print('Navigating to Notification');
           Navigator.push(
             context,
-            MaterialPageRoute(
-                builder: (context) => const NotificationScreen()
-            ),
+            MaterialPageRoute(builder: (context) => const NotificationScreen()),
           );
           break;
         case 4:

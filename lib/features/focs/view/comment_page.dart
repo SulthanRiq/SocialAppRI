@@ -2,9 +2,9 @@
 // FILE: features/focs/view/comment_page.dart
 // ============================================
 import 'package:flutter/material.dart';
-import '../../../models/post_model.dart';
-import '../../../models/comment_model.dart';
-import '../../../services/post_service.dart';
+import '../model/post_model.dart';
+import '../model/comment.dart';
+import '../services/post_service.dart';
 
 class CommentPage extends StatefulWidget {
   final Post post;

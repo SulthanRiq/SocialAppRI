@@ -1,6 +1,3 @@
-// ============================================
-// FILE: features/focs/view/comment_page.dart
-// ============================================
 import 'package:flutter/material.dart';
 import '../model/post_model.dart';
 import '../model/comment.dart';
@@ -24,6 +21,13 @@ class _CommentPageState extends State<CommentPage> {
   final FocusNode _focusNode = FocusNode();
 
   @override
+  void initState() {
+    super.initState();
+    // ✅ aman kalau kamu butuh dummy data
+    _postService.initializeDummyData();
+  }
+
+  @override
   void dispose() {
     _commentController.dispose();
     _focusNode.dispose();
@@ -32,6 +36,9 @@ class _CommentPageState extends State<CommentPage> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ ambil list komentar dari service
+    final comments = _postService.getComments(widget.post.id);
+
     return Scaffold(
       backgroundColor: const Color(0xFF7A9CA8),
       appBar: AppBar(
@@ -58,7 +65,7 @@ class _CommentPageState extends State<CommentPage> {
               children: [
                 _buildOriginalPost(),
                 const SizedBox(height: 16),
-                _buildCommentsSection(),
+                _buildCommentsSection(comments), // ✅ kirim list
               ],
             ),
           ),
@@ -135,8 +142,9 @@ class _CommentPageState extends State<CommentPage> {
     );
   }
 
-  Widget _buildCommentsSection() {
-    if (widget.post.comments.isEmpty) {
+  // ✅ sekarang parameternya List<Comment>
+  Widget _buildCommentsSection(List<Comment> comments) {
+    if (comments.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(32),
         child: Column(
@@ -171,7 +179,7 @@ class _CommentPageState extends State<CommentPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${widget.post.comments.length} Komentar',
+          '${comments.length} Komentar',
           style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -179,7 +187,7 @@ class _CommentPageState extends State<CommentPage> {
           ),
         ),
         const SizedBox(height: 12),
-        ...widget.post.comments.map((comment) => _buildCommentCard(comment)),
+        ...comments.map((comment) => _buildCommentCard(comment)),
       ],
     );
   }
@@ -346,7 +354,7 @@ class _CommentPageState extends State<CommentPage> {
 
     final comment = Comment(
       id: _postService.generateCommentId(),
-      userName: 'Current User', // TODO: Get from auth services
+      userName: 'Current User',
       userAvatar: 'https://i.pravatar.cc/150?img=33',
       content: _commentController.text.trim(),
       timestamp: DateTime.now(),

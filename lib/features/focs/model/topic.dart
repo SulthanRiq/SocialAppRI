@@ -120,7 +120,7 @@ class Topic {
   static Topic? getTopicByName(String name) {
     try {
       return allTopics().firstWhere(
-        (topic) => topic.name.toLowerCase() == name.toLowerCase(),
+            (topic) => topic.name.toLowerCase() == name.toLowerCase(),
       );
     } catch (e) {
       return null;

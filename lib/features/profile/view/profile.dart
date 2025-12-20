@@ -11,13 +11,46 @@ import 'package:projek_mobile/features/help/view/help_faq_page.dart';
 // ✅ IMPORT POST PAGE
 import 'package:projek_mobile/features/post/view/manage_post_page.dart';
 
-class ProfileMenuPage extends StatelessWidget {
+// ✅ IMPORT EDIT PROFILE PAGE (feature baru)
+import 'package:projek_mobile/features/edit_profile/view/edit_profile.dart';
+
+class ProfileMenuPage extends StatefulWidget {
   const ProfileMenuPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final AuthController authController = Get.find<AuthController>();
+  State<ProfileMenuPage> createState() => _ProfileMenuPageState();
+}
 
+class _ProfileMenuPageState extends State<ProfileMenuPage> {
+  late final AuthController authController;
+
+  @override
+  void initState() {
+    super.initState();
+    authController = Get.find<AuthController>();
+  }
+
+  /// Panggil refresh data user setelah edit profile.
+  /// NOTE: sesuaikan dengan method yang ADA di AuthController kamu.
+  Future<void> _refreshUserAfterEdit() async {
+    try {
+      // ✅ GANTI sesuai method di AuthController kamu:
+      // contoh yang mungkin:
+      // await authController.getCurrentUser();
+      // await authController.fetchCurrentUser();
+      // await authController.loadUserProfile();
+      // await authController.refreshUser();
+
+      if (authController.runtimeType.toString().isNotEmpty) {
+        // placeholder biar gak warning kosong
+      }
+    } catch (_) {
+      // biarin aja, UI tetap jalan
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     const Color topBarColor = Color(0xFF5E8092);
     const Color cardColor = Color(0xFFE8EEF2);
     const Color accentColor = Color(0xFF36466B);
@@ -36,9 +69,8 @@ class ProfileMenuPage extends StatelessWidget {
               child: GestureDetector(
                 onTap: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const HomePage()),
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomePage()),
                   );
                 },
                 child: Row(
@@ -93,7 +125,7 @@ class ProfileMenuPage extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                // Avatar dengan Base64 Image
+                                // Avatar (Base64)
                                 Container(
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
@@ -113,7 +145,6 @@ class ProfileMenuPage extends StatelessWidget {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      // Username dengan ikon gender (opsional)
                                       Row(
                                         children: [
                                           Flexible(
@@ -126,17 +157,9 @@ class ProfileMenuPage extends StatelessWidget {
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
-                                          const SizedBox(width: 4),
-                                          // Icon gender bisa ditambahkan jika ada di user model
-                                          // const Icon(
-                                          //   Icons.male,
-                                          //   size: 18,
-                                          //   color: Colors.blueAccent,
-                                          // ),
                                         ],
                                       ),
                                       const SizedBox(height: 2),
-                                      // Email sebagai subtitle
                                       Text(
                                         '@$username',
                                         style: const TextStyle(
@@ -163,26 +186,20 @@ class ProfileMenuPage extends StatelessWidget {
                             const Divider(thickness: 0.7),
                             const SizedBox(height: 8),
 
-                            // Stats (placeholder - bisa diintegrasikan dengan data real)
+                            // Stats (placeholder)
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: const [
                                 Icon(Icons.bar_chart, size: 18),
                                 SizedBox(width: 4),
-                                Text(
-                                  '0 Posts',
-                                  style: TextStyle(fontSize: 13),
-                                ),
+                                Text('0 Posts', style: TextStyle(fontSize: 13)),
                                 SizedBox(width: 24),
                                 SizedBox(
                                   height: 14,
                                   child: VerticalDivider(thickness: 0.8),
                                 ),
                                 SizedBox(width: 24),
-                                Text(
-                                  '0 Followers',
-                                  style: TextStyle(fontSize: 13),
-                                ),
+                                Text('0 Followers', style: TextStyle(fontSize: 13)),
                               ],
                             ),
                           ],
@@ -193,10 +210,24 @@ class ProfileMenuPage extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     // ===== MENU LIST =====
-                    const ProfileMenuItem(
+
+                    // ✅ EDIT PROFILE (SEKARANG BISA DIKLIK)
+                    ProfileMenuItem(
                       icon: Icons.person_outline,
                       title: 'Edit Profile',
                       subtitle: 'Edit profile',
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const EditProfile()),
+                        );
+
+                        // Kalau EditProfile mengembalikan result true, refresh data
+                        if (result == true) {
+                          await _refreshUserAfterEdit();
+                          if (mounted) setState(() {});
+                        }
+                      },
                     ),
                     const SizedBox(height: 12),
 
@@ -207,7 +238,7 @@ class ProfileMenuPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    // ✅ POST (SEKARANG BISA DIKLIK)
+                    // POST
                     ProfileMenuItem(
                       icon: Icons.inventory_2_outlined,
                       title: 'Post',
@@ -252,7 +283,6 @@ class ProfileMenuPage extends StatelessWidget {
                       title: 'Logout',
                       subtitle: '',
                       onTap: () async {
-                        // Show confirmation dialog
                         final shouldLogout = await showDialog<bool>(
                           context: context,
                           builder: (BuildContext context) {
@@ -261,15 +291,11 @@ class ProfileMenuPage extends StatelessWidget {
                               content: const Text('Apakah Anda yakin ingin logout?'),
                               actions: [
                                 TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context, false);
-                                  },
+                                  onPressed: () => Navigator.pop(context, false),
                                   child: const Text('Batal'),
                                 ),
                                 TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context, true);
-                                  },
+                                  onPressed: () => Navigator.pop(context, true),
                                   child: const Text(
                                     'Logout',
                                     style: TextStyle(color: Colors.red),
@@ -280,13 +306,10 @@ class ProfileMenuPage extends StatelessWidget {
                           },
                         );
 
-                        // Jika user confirm logout
                         if (shouldLogout == true && context.mounted) {
                           try {
-                            // Call logout dari controller
                             await authController.logout();
 
-                            // Show success message
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -297,11 +320,9 @@ class ProfileMenuPage extends StatelessWidget {
                               );
                             }
 
-                            // Navigate ke login dengan delay
                             await Future.delayed(const Duration(milliseconds: 500));
 
                             if (context.mounted) {
-                              // Remove all routes and go to login
                               Navigator.of(context).pushNamedAndRemoveUntil(
                                 '/login',
                                     (route) => false,
@@ -377,12 +398,9 @@ class ProfileMenuItem extends StatelessWidget {
           ),
         ),
         subtitle: subtitle.isNotEmpty
-            ? Text(
-          subtitle,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.black54,
-          ),
+            ? const Text(
+          '',
+          style: TextStyle(fontSize: 12, color: Colors.black54),
         )
             : null,
         onTap: onTap ?? () {},

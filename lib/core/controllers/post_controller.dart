@@ -89,6 +89,7 @@ class PostController extends GetxController {
         'imageBase64': base64Image,
         'likes': 0,
         'likedBy': [],
+        'commentsCount': 0,
         'createdAt': FieldValue.serverTimestamp(),
         'createdAtClient': DateTime.now().millisecondsSinceEpoch,
       });

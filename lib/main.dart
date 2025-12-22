@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
 import 'package:projek_mobile/core/controllers/auth_controller.dart';
+import 'package:projek_mobile/core/controllers/comment_controller.dart';
 import 'package:projek_mobile/core/controllers/post_controller.dart';
 // Import pages
 import 'features/login/view/login_page.dart';
@@ -16,6 +17,7 @@ void main() async {
 
   Get.put(AuthController());
   Get.put(PostController());
+  Get.put(CommentController());
 
   runApp(const MyApp());
 }

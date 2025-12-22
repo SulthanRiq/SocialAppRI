@@ -164,12 +164,12 @@ class AccountPage extends StatelessWidget {
                         elevation: 2,
                       ),
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const ProtectedModePage(),
-                          ),
-                        );
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (_) => const ProtectedModePage(),
+                        //   ),
+                        // );
                       },
                       child: const Text('Aktifkan'),
                     ),

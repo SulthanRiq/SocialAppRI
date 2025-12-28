@@ -14,6 +14,7 @@ import 'package:projek_mobile/features/create_post/view/create_post_page.dart';
 import '../../../core/controllers/auth_controller.dart';
 import '../../register/widgets/base64_image_widget.dart';
 import '../../comment/view/comment_bottom_sheet.dart';
+import 'share_post_view.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -356,6 +357,38 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ),
                                 ),
+
+                                const SizedBox(width: 16),
+
+                                // ✅ SHARE BUTTON
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => SharePostView(post: post),
+                                      ),
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.share_outlined,
+                                          color: Colors.grey.shade700,
+                                          size: 22,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                const Spacer(),
 
                                 // Info untuk post sendiri
                                 if (isOwnPost) ...[

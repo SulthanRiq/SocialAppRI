@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-// Import custom bottom navbar
+import 'dart:convert';
 import 'package:projek_mobile/common/widgets/custom_bottom_navbar.dart';
 import '../../dashboard/view/dashboard_register_page.dart';
 import '../../focs/view/focs_page.dart';
 import '../../notification/view/notification_page.dart';
 import '../../inbox/view/inbox_page.dart';
 import 'trend_posts_page.dart';
-import 'package:projek_mobile/features/profile/view/profile.dart';
 import '../../profile/view/profile.dart';
 import '../../../core/controllers/auth_controller.dart';
+import '../../../core/controllers/post_controller.dart';
+import '../controller/search_controller.dart' as custom;
 import '../../register/widgets/base64_image_widget.dart';
+import '../../comment/view/comment_bottom_sheet.dart';
+import '../../dashboard/view/share_post_view.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -20,16 +23,28 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  int _selectedIndex = 1; // Index untuk Search di bottom nav
-  int _selectedTabIndex = 0; // Index untuk tab (Untuk Anda / Sedang Tren)
+  int _selectedIndex = 1;
+  int _selectedTabIndex = 0;
 
-  final AuthController authController = Get.put(AuthController());
+  final AuthController authController = Get.find<AuthController>();
+  final PostController postController = Get.find<PostController>();
+  final custom.SearchController searchController = Get.put(custom.SearchController());
+
+  final TextEditingController _searchTextController = TextEditingController();
+  bool _isSearchActive = false;
+
+  @override
+  void dispose() {
+    _searchTextController.dispose();
+    searchController.clearSearch();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final Color topBarColor = const Color(0xFF6B95A8); // biru abu-abu
-    final Color bgColor = const Color(0xFFB8C5CC); // abu-abu terang
-    final Color tabBarColor = const Color(0xFF9AADBA); // biru muda untuk tab bar
+    final Color topBarColor = const Color(0xFF6B95A8);
+    final Color bgColor = const Color(0xFFB8C5CC);
+    final Color tabBarColor = const Color(0xFF9AADBA);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -51,7 +66,6 @@ class _SearchScreenState extends State<SearchScreen> {
                     // Foto profil
                     GestureDetector(
                       onTap: () {
-                        // Navigasi ke profile
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
@@ -70,7 +84,6 @@ class _SearchScreenState extends State<SearchScreen> {
               );
             }),
 
-
             // SEARCH BAR
             Container(
               color: topBarColor,
@@ -82,8 +95,15 @@ class _SearchScreenState extends State<SearchScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: TextField(
+                  controller: _searchTextController,
+                  onChanged: (value) {
+                    setState(() {
+                      _isSearchActive = value.isNotEmpty;
+                    });
+                    searchController.searchPosts(value);
+                  },
                   decoration: InputDecoration(
-                    hintText: 'Search',
+                    hintText: 'Cari postingan atau pengguna...',
                     hintStyle: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 15,
@@ -92,6 +112,19 @@ class _SearchScreenState extends State<SearchScreen> {
                       Icons.search,
                       color: Colors.grey[600],
                     ),
+                    suffixIcon: _isSearchActive
+                        ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchTextController.clear();
+                        setState(() {
+                          _isSearchActive = false;
+                        });
+                        searchController.clearSearch();
+                        FocusScope.of(context).unfocus();
+                      },
+                    )
+                        : null,
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -102,94 +135,93 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
 
-            // TAB BAR (Untuk Anda / Sedang Tren)
-            Container(
-              height: 50,
-              color: tabBarColor,
-              child: Row(
-                children: [
-                  // Tab Untuk Anda
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedTabIndex = 0;
-                        });
-                      },
-                      child: Container(
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          border: _selectedTabIndex == 0
-                              ? const Border(
-                            bottom: BorderSide(
-                              color: Colors.blue,
-                              width: 3,
+            // TAB BAR (hanya tampil jika tidak search)
+            if (!_isSearchActive)
+              Container(
+                height: 50,
+                color: tabBarColor,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedTabIndex = 0;
+                          });
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            border: _selectedTabIndex == 0
+                                ? const Border(
+                              bottom: BorderSide(
+                                color: Colors.blue,
+                                width: 3,
+                              ),
+                            )
+                                : null,
+                          ),
+                          child: Text(
+                            'Untuk Anda',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: _selectedTabIndex == 0
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: Colors.black87,
                             ),
-                          )
-                              : null,
-                        ),
-                        child: Text(
-                          'Untuk Anda',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: _selectedTabIndex == 0
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: Colors.black87,
                           ),
                         ),
                       ),
                     ),
-                  ),
-
-                  // Tab Sedang Tren
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedTabIndex = 1;
-                        });
-                      },
-                      child: Container(
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          border: _selectedTabIndex == 1
-                              ? const Border(
-                            bottom: BorderSide(
-                              color: Colors.blue,
-                              width: 3,
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedTabIndex = 1;
+                          });
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            border: _selectedTabIndex == 1
+                                ? const Border(
+                              bottom: BorderSide(
+                                color: Colors.blue,
+                                width: 3,
+                              ),
+                            )
+                                : null,
+                          ),
+                          child: Text(
+                            'Sedang Tren',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: _selectedTabIndex == 1
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: Colors.black87,
                             ),
-                          )
-                              : null,
-                        ),
-                        child: Text(
-                          'Sedang Tren',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: _selectedTabIndex == 1
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: Colors.black87,
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
 
             // CONTENT AREA
             Expanded(
-              child: _selectedTabIndex == 0
+              child: _isSearchActive
+                  ? _buildSearchResults()
+                  : (_selectedTabIndex == 0
                   ? _buildUntukAndaTab()
-                  : _buildSedangTrenTab(),
+                  : _buildSedangTrenTab()),
             ),
           ],
         ),
       ),
 
-      // BOTTOM NAVIGATION BAR (pakai yang dari common)
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: _selectedIndex,
         onItemTapped: (index) {
@@ -197,9 +229,7 @@ class _SearchScreenState extends State<SearchScreen> {
             _selectedIndex = index;
           });
 
-          // Handle navigasi
           if (index == 0) {
-            // Kembali ke Home
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -207,7 +237,6 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             );
           } else if (index == 2) {
-            // Navigasi ke Focs/Create
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -215,7 +244,6 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             );
           } else if (index == 3) {
-            // Navigasi ke Notifications
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -223,7 +251,6 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             );
           } else if (index == 4) {
-            // Navigasi ke Messages
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -236,7 +263,282 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // ✅ fungsi untuk pindah ke halaman trend
+  // ✅ BUILD SEARCH RESULTS
+  Widget _buildSearchResults() {
+    return Obx(() {
+      // Loading state
+      if (searchController.isSearching.value) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      }
+
+      // Empty state
+      if (searchController.searchResults.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search_off,
+                size: 80,
+                color: Colors.grey.shade400,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Tidak ada hasil untuk "${searchController.searchQuery.value}"',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Coba kata kunci lain',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      // Search results list
+      return ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: searchController.searchResults.length,
+        itemBuilder: (context, index) {
+          final post = searchController.searchResults[index];
+          final isLiked = postController.isPostLikedByCurrentUser(post);
+          final isOwnPost = postController.isOwnPost(post);
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD9D9D9),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // USER INFO & DELETE BUTTON
+                Row(
+                  children: [
+                    Base64CircleAvatar(
+                      base64String: post.userPhoto,
+                      radius: 20,
+                      backgroundColor: Colors.grey.shade400,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            post.username,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            _formatTime(post.createdAt),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (isOwnPost)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                          size: 22,
+                        ),
+                        onPressed: () {
+                          _showDeleteDialog(context, post);
+                        },
+                      ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // CONTENT
+                Text(
+                  post.content,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                ),
+
+                // IMAGE
+                if (post.imageBase64 != null) ...[
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.memory(
+                      base64Decode(post.imageBase64!),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 12),
+
+                Divider(
+                  color: Colors.grey.shade400,
+                  thickness: 1,
+                ),
+
+                const SizedBox(height: 8),
+
+                // ✅ LIKE, COMMENT & SHARE BUTTONS
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        // Like Button
+                        InkWell(
+                          onTap: isOwnPost
+                              ? null
+                              : () => postController.toggleLike(post),
+                          borderRadius: BorderRadius.circular(20),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 6,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  isLiked
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: isOwnPost
+                                      ? Colors.grey.shade400
+                                      : (isLiked
+                                      ? Colors.red
+                                      : Colors.grey.shade700),
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${post.likes}',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade700,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // Comment Button
+                        InkWell(
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (context) =>
+                                  CommentBottomSheet(post: post),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 6,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.comment_outlined,
+                                  color: Colors.grey.shade700,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${post.commentsCount}',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade700,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // Share Button
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    SharePostView(post: post),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: Icon(
+                              Icons.share_outlined,
+                              color: Colors.grey.shade700,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    if (isOwnPost) ...[
+                      const SizedBox(height: 4),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Text(
+                          '(Postingan Anda)',
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    });
+  }
+
   void _goToTrend(String title) {
     Navigator.push(
       context,
@@ -246,7 +548,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // Tab Untuk Anda (tetap seperti punyamu)
   Widget _buildUntukAndaTab() {
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -275,7 +576,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // ✅ Tab Sedang Tren (sesuai gambar: 1 panel + rank #1 #2 #3 di kanan)
   Widget _buildSedangTrenTab() {
     final trends = [
       {
@@ -294,8 +594,6 @@ class _SearchScreenState extends State<SearchScreen> {
         'rank': '#3',
         'title': '#IndonesiaBebasNarkoba',
         'posts': '2.449 postingan',
-        // ⚠️ sesuaikan dengan key di TrendPostsPage kamu.
-        // Kalau di TrendPostsPage key-nya "Bebas Narkoba", pakai itu:
         'goTitle': 'Bebas Narkoba',
       },
     ];
@@ -348,7 +646,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // ✅ item untuk list trending (sesuai layout gambar)
   Widget _buildTrendingItem({
     required String category,
     required String title,
@@ -363,7 +660,6 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // kiri (teks)
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -395,7 +691,6 @@ class _SearchScreenState extends State<SearchScreen> {
                 ],
               ),
             ),
-            // kanan (#1 #2 #3)
             Text(
               rankText,
               style: const TextStyle(
@@ -410,7 +705,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // Helper widget untuk trend card (tetap punyamu)
   Widget _buildTrendCard({
     required String category,
     required String title,
@@ -461,6 +755,62 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays > 7) {
+      return '${difference.inDays} hari yang lalu';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays} hari yang lalu';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} jam yang lalu';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} menit yang lalu';
+    } else {
+      return 'Baru saja';
+    }
+  }
+
+  void _showDeleteDialog(BuildContext context, post) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Postingan'),
+        content: const Text('Apakah Anda yakin ingin menghapus postingan ini?'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Batal',
+              style: TextStyle(color: Colors.grey.shade700),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              postController.deletePost(post);
+              Navigator.pop(context);
+              Get.snackbar(
+                'Sukses',
+                'Postingan berhasil dihapus',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.green,
+                colorText: Colors.white,
+              );
+            },
+            child: const Text(
+              'Hapus',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
       ),
     );
   }

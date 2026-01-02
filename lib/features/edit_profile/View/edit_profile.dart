@@ -1,9 +1,9 @@
 import 'dart:io';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../controller/edit_profile_controller.dart';
+import '../../register/widgets/base64_image_widget.dart';
 
 class EditProfile extends StatelessWidget {
   const EditProfile({super.key});
@@ -46,7 +46,7 @@ class EditProfile extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
         title: const Text(
-          'Edit profil',
+          'Edit Profil',
           style: TextStyle(color: Colors.white, fontSize: 16),
         ),
       ),
@@ -71,107 +71,129 @@ class EditProfile extends StatelessWidget {
                       children: [
                         GestureDetector(
                           onTap: c.isSaving.value ? null : c.pickAvatar,
-                          child: Container(
-                            width: 72,
-                            height: 72,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                            ),
-                            child: ClipOval(child: _avatarWidget(c)),
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.grey.shade300,
+                                  border: Border.all(
+                                    color: topBarColor,
+                                    width: 3,
+                                  ),
+                                ),
+                                child: ClipOval(child: _avatarWidget(c)),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: const BoxDecoration(
+                                    color: topBarColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 12),
                         GestureDetector(
                           onTap: c.isSaving.value ? null : c.pickAvatar,
                           child: const Text(
-                            'Edit gambar',
+                            'Ubah Foto Profil',
                             style: TextStyle(
                               color: Color(0xFF2F6D8C),
                               fontWeight: FontWeight.w600,
+                              fontSize: 14,
                             ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 26),
+                  const SizedBox(height: 32),
 
-                  Text('Nama', style: TextStyle(color: Colors.black.withOpacity(0.65))),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: c.nameC,
-                    enabled: !c.isSaving.value,
-                    decoration: inputDeco(),
-                    validator: (v) {
-                      final val = (v ?? '').trim();
-                      if (val.isEmpty) return 'Nama wajib diisi';
-                      if (val.length < 3) return 'Minimal 3 karakter';
-                      return null;
-                    },
+                  // Username Field
+                  Text(
+                    'Nama Pengguna',
+                    style: TextStyle(
+                      color: Colors.black.withOpacity(0.65),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-
-                  const SizedBox(height: 16),
-
-                  Text('Nama Pengguna', style: TextStyle(color: Colors.black.withOpacity(0.65))),
                   const SizedBox(height: 6),
                   TextFormField(
                     controller: c.usernameC,
                     enabled: !c.isSaving.value,
-                    decoration: inputDeco(hint: '@username'),
+                    decoration: inputDeco(hint: 'username'),
                     validator: (v) {
                       final val = (v ?? '').trim();
                       if (val.isEmpty) return 'Username wajib diisi';
-                      if (val.contains(' ')) return 'Tidak boleh spasi';
+                      if (val.contains(' ')) return 'Tidak boleh mengandung spasi';
+
                       final clean = val.startsWith('@') ? val.substring(1) : val;
-                      if (clean.length < 3) return 'Minimal 3 karakter';
+                      if (clean.length < 3) {
+                        return 'Username minimal 3 karakter';
+                      }
+                      if (clean.length > 20) {
+                        return 'Username maksimal 20 karakter';
+                      }
+
+                      // Validasi hanya huruf, angka, underscore
+                      if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(clean)) {
+                        return 'Hanya huruf, angka, dan underscore';
+                      }
+
                       return null;
                     },
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
-                  Text('Bio', style: TextStyle(color: Colors.black.withOpacity(0.65))),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: c.bioC,
-                    enabled: !c.isSaving.value,
-                    decoration: inputDeco(hint: 'Tulis sesuatu tentang diri Anda...'),
+                  // Info text
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.blue.shade200,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 20,
+                          color: Colors.blue.shade700,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Username hanya bisa berisi huruf, angka, dan underscore (_)',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
 
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 32),
 
-                  const Text(
-                    'Jenis Kelamin',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 6),
-
-                  Row(
-                    children: [
-                      Obx(() => Radio<String>(
-                        value: 'Pria',
-                        groupValue: c.gender.value,
-                        onChanged: c.isSaving.value
-                            ? null
-                            : (v) => c.gender.value = v ?? 'Pria',
-                      )),
-                      const Text('Pria'),
-                      const SizedBox(width: 18),
-                      Obx(() => Radio<String>(
-                        value: 'Wanita',
-                        groupValue: c.gender.value,
-                        onChanged: c.isSaving.value
-                            ? null
-                            : (v) => c.gender.value = v ?? 'Wanita',
-                      )),
-                      const Text('Wanita'),
-                    ],
-                  ),
-
-                  const SizedBox(height: 26),
-
+                  // Save Button
                   Center(
                     child: SizedBox(
                       width: 160,
@@ -181,22 +203,26 @@ class EditProfile extends StatelessWidget {
                           backgroundColor: const Color(0xFF6F94A6),
                           elevation: 4,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(2),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                         onPressed: c.isSaving.value ? null : c.save,
                         child: Obx(() {
                           return c.isSaving.value
                               ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
                               : const Text(
                             'Simpan',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
+                              fontSize: 15,
                             ),
                           );
                         }),
@@ -213,17 +239,30 @@ class EditProfile extends StatelessWidget {
   }
 
   Widget _avatarWidget(EditProfileController c) {
+    // Prioritas: picked image > current photoUrl > default icon
     final File? file = c.pickedImage.value;
-    if (file != null) return Image.file(file, fit: BoxFit.cover);
+    if (file != null) {
+      return Image.file(
+        file,
+        fit: BoxFit.cover,
+        width: 100,
+        height: 100,
+      );
+    }
 
     final url = c.photoUrl.value;
     if (url.isNotEmpty) {
-      return Image.network(
-        url,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 40),
+      return Base64CircleAvatar(
+        base64String: url,
+        radius: 50,
+        backgroundColor: Colors.grey.shade300,
       );
     }
-    return const Icon(Icons.person, size: 40);
+
+    return Icon(
+      Icons.person,
+      size: 50,
+      color: Colors.grey.shade600,
+    );
   }
 }

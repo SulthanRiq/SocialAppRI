@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 // ✅ Import halaman create post
-import 'package:projek_mobile/features/post/view/create_post_page.dart';
+import '../../create_post/view/create_post_page.dart';
 
 class ManagePostPage extends StatelessWidget {
   const ManagePostPage({super.key});
@@ -112,7 +112,7 @@ class ManagePostPage extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const CreatePostPage(),
+                                builder: (_) => const CreatePostScreen(),
                               ),
                             );
                           },

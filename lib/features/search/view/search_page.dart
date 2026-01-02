@@ -103,7 +103,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     searchController.searchPosts(value);
                   },
                   decoration: InputDecoration(
-                    hintText: 'Cari postingan atau pengguna...',
+                    hintText: 'Cari postingan...',
                     hintStyle: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 15,

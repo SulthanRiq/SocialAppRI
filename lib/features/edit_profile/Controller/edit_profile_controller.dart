@@ -1,169 +1,253 @@
 import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-
-import '../model/user_profile.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/controllers/auth_controller.dart';
 
 class EditProfileController extends GetxController {
-  final _auth = FirebaseAuth.instance;
-  final _db = FirebaseFirestore.instance;
-  final _storage = FirebaseStorage.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AuthController _authController = Get.find<AuthController>();
+  final ImagePicker _picker = ImagePicker();
 
-  // UI state
-  final isLoading = true.obs;
-  final isSaving = false.obs;
-
-  // form
   final formKey = GlobalKey<FormState>();
-  final nameC = TextEditingController();
-  final usernameC = TextEditingController();
-  final bioC = TextEditingController();
 
-  // gender
-  final gender = 'Pria'.obs;
+  // Controllers
+  final TextEditingController usernameC = TextEditingController();
 
-  // avatar
-  final pickedImage = Rxn<File>(); // file lokal yg dipilih
-  final photoUrl = ''.obs; // url dari Firestore (kalau ada)
-
-  String get uid {
-    final u = _auth.currentUser;
-    if (u == null) throw Exception('User belum login (FirebaseAuth.currentUser null)');
-    return u.uid;
-  }
-
-  DocumentReference<Map<String, dynamic>> get userDoc => _db.collection('users').doc(uid);
+  // State
+  RxBool isLoading = true.obs;
+  RxBool isSaving = false.obs;
+  Rx<File?> pickedImage = Rx<File?>(null);
+  RxString photoUrl = ''.obs;
+  RxString currentUsername = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
-    loadProfile();
+    loadUserData();
   }
 
   @override
   void onClose() {
-    nameC.dispose();
     usernameC.dispose();
-    bioC.dispose();
     super.onClose();
   }
 
-  /// ✅ Load profil HANYA dari Firestore (tidak menyentuh Storage)
-  Future<void> loadProfile() async {
-    isLoading.value = true;
+  // ================= LOAD USER DATA
+  void loadUserData() async {
     try {
-      final snap = await userDoc.get();
+      isLoading.value = true;
 
-      if (!snap.exists || snap.data() == null) {
-        // Kalau doc belum ada, buat doc kosong
-        final created = UserProfile.empty(uid);
-        await userDoc.set({
-          'name': created.name,
-          'username': created.username,
-          'bio': created.bio,
-          'gender': created.gender,
-          'photoUrl': created.photoUrl,
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-
-        _apply(created);
-      } else {
-        final profile = UserProfile.fromMap(uid, snap.data()!);
-        _apply(profile);
+      final user = _authController.currentUser.value;
+      if (user == null) {
+        Get.snackbar('Error', 'User not found');
+        Get.back();
+        return;
       }
+
+      // Load data ke form
+      usernameC.text = user.username;
+      photoUrl.value = user.photoUrl ?? '';
+      currentUsername.value = user.username;
+
     } catch (e) {
-      Get.snackbar('Error', 'Gagal memuat profil: $e');
+      print('❌ Error loading user data: $e');
+      Get.snackbar(
+        'Error',
+        'Gagal memuat data profil',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isLoading.value = false;
     }
   }
 
-  void _apply(UserProfile p) {
-    nameC.text = p.name;
-    usernameC.text = p.username; // tanpa '@'
-    bioC.text = p.bio;
-    gender.value = p.gender.isEmpty ? 'Pria' : p.gender;
-    photoUrl.value = p.photoUrl; // ✅ dari Firestore saja
-  }
-
+  // ================= PICK AVATAR
   Future<void> pickAvatar() async {
     try {
-      final picker = ImagePicker();
-      final x = await picker.pickImage(
+      final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 80,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
       );
-      if (x == null) return;
 
-      pickedImage.value = File(x.path);
+      if (image != null) {
+        pickedImage.value = File(image.path);
+        print('✅ Image picked: ${image.path}');
+      }
     } catch (e) {
-      Get.snackbar('Error', 'Gagal memilih gambar: $e');
+      print('❌ Error picking image: $e');
+      Get.snackbar(
+        'Error',
+        'Gagal memilih gambar',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
-  /// ✅ Upload: hanya dipanggil kalau user benar-benar pilih gambar
-  Future<String> uploadAvatar(File file) async {
-    final ref = _storage.ref().child('users/$uid/avatar.jpg');
-    await ref.putFile(file);
-    return await ref.getDownloadURL();
-  }
-
-  String sanitizeUsername(String raw) {
-    var u = raw.trim();
-    if (u.startsWith('@')) u = u.substring(1);
-    return u;
-  }
-
-  /// ✅ Save: TIDAK akan menyentuh Storage kalau tidak pilih gambar baru
-  Future<void> save() async {
-    final ok = formKey.currentState?.validate() ?? false;
-    if (!ok) return;
-
-    isSaving.value = true;
+  // ================= CHECK USERNAME AVAILABILITY
+  Future<bool> isUsernameAvailable(String username) async {
     try {
-      String finalPhoto = photoUrl.value; // default pakai yg ada di Firestore
-
-      // ✅ HANYA upload jika user pilih gambar baru
-      if (pickedImage.value != null) {
-        finalPhoto = await uploadAvatar(pickedImage.value!);
+      // Skip check jika username tidak berubah
+      if (username.toLowerCase() == currentUsername.value.toLowerCase()) {
+        return true;
       }
 
-      final name = nameC.text.trim();
-      final username = sanitizeUsername(usernameC.text);
-      final bio = bioC.text.trim();
-      final g = gender.value;
+      final querySnapshot = await _firestore
+          .collection('users')
+          .where('username', isEqualTo: username)
+          .limit(1)
+          .get();
 
-      // Simpan ke Firestore
-      await userDoc.set({
-        'name': name,
-        'username': username,
-        'bio': bio,
-        'gender': g,
-        'photoUrl': finalPhoto,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      // Simpan state lokal
-      photoUrl.value = finalPhoto;
-
-      // Optional sinkron ke FirebaseAuth
-      final user = _auth.currentUser;
-      if (user != null) {
-        await user.updateDisplayName(name);
-        if (finalPhoto.isNotEmpty) await user.updatePhotoURL(finalPhoto);
-      }
-
-      Get.snackbar('Berhasil', 'Profil berhasil disimpan ✅');
-      Get.back(result: true);
+      return querySnapshot.docs.isEmpty;
     } catch (e) {
-      Get.snackbar('Error', 'Gagal menyimpan: $e');
+      print('❌ Error checking username: $e');
+      return false;
+    }
+  }
+
+  // ================= SAVE PROFILE
+  Future<void> save() async {
+    if (!formKey.currentState!.validate()) return;
+
+    try {
+      isSaving.value = true;
+
+      final user = _authController.currentUser.value;
+      if (user == null) throw 'User not found';
+
+      // Validasi username
+      String newUsername = usernameC.text.trim();
+      if (newUsername.startsWith('@')) {
+        newUsername = newUsername.substring(1);
+      }
+
+      // Check username availability
+      if (newUsername.toLowerCase() != currentUsername.value.toLowerCase()) {
+        final isAvailable = await isUsernameAvailable(newUsername);
+        if (!isAvailable) {
+          Get.snackbar(
+            'Error',
+            'Username "$newUsername" sudah digunakan',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+          return;
+        }
+      }
+
+      // Prepare update data
+      Map<String, dynamic> updateData = {
+        'username': newUsername,
+        'updatedAt': DateTime.now().toIso8601String(),
+      };
+
+      // Convert image to base64 if picked
+      if (pickedImage.value != null) {
+        final bytes = await pickedImage.value!.readAsBytes();
+        final base64Image = base64Encode(bytes);
+        updateData['photoUrl'] = base64Image;
+        print('✅ Image converted to base64');
+      }
+
+      // Update Firestore
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .update(updateData);
+
+      // Update local user data
+      final updatedUser = user.copyWith(
+        username: newUsername,
+        photoUrl: updateData['photoUrl'] ?? user.photoUrl,
+        updatedAt: DateTime.now(),
+      );
+
+      _authController.currentUser.value = updatedUser;
+
+      // ✅ UPDATE SEMUA POSTS USER (username & photo)
+      await _updateUserPosts(user.uid, newUsername, updateData['photoUrl']);
+
+      // ✅ UPDATE SEMUA COMMENTS USER (username & photo)
+      await _updateUserComments(user.uid, newUsername, updateData['photoUrl']);
+
+      print('✅ Profile updated successfully');
+
+      Get.back();
+      Get.snackbar(
+        'Sukses',
+        'Profil berhasil diperbarui',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF6B95A8),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+
+    } catch (e) {
+      print('❌ Error saving profile: $e');
+      Get.snackbar(
+        'Error',
+        'Gagal menyimpan profil: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isSaving.value = false;
+    }
+  }
+
+  // ================= UPDATE USER POSTS
+  Future<void> _updateUserPosts(String userId, String newUsername, String? newPhotoUrl) async {
+    try {
+      // Get all posts by user
+      final postsSnapshot = await _firestore
+          .collection('posts')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      // Update each post
+      final batch = _firestore.batch();
+      for (var doc in postsSnapshot.docs) {
+        batch.update(doc.reference, {
+          'username': newUsername,
+          if (newPhotoUrl != null) 'userPhoto': newPhotoUrl,
+        });
+      }
+
+      await batch.commit();
+      print('✅ Updated ${postsSnapshot.docs.length} posts');
+    } catch (e) {
+      print('❌ Error updating posts: $e');
+    }
+  }
+
+  // ================= UPDATE USER COMMENTS
+  Future<void> _updateUserComments(String userId, String newUsername, String? newPhotoUrl) async {
+    try {
+      // Get all comments by user
+      final commentsSnapshot = await _firestore
+          .collection('comments')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      // Update each comment
+      final batch = _firestore.batch();
+      for (var doc in commentsSnapshot.docs) {
+        batch.update(doc.reference, {
+          'username': newUsername,
+          if (newPhotoUrl != null) 'userPhoto': newPhotoUrl,
+        });
+      }
+
+      await batch.commit();
+      print('✅ Updated ${commentsSnapshot.docs.length} comments');
+    } catch (e) {
+      print('❌ Error updating comments: $e');
     }
   }
 }

@@ -55,11 +55,11 @@ class PostController extends GetxController {
       },
       onError: (error) {
         isLoading.value = false;
-        Get.snackbar(
-          'Error',
-          'Gagal memuat posts: $error',
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        // Get.snackbar(
+        //   'Error',
+        //   'Gagal memuat posts: $error',
+        //   snackPosition: SnackPosition.BOTTOM,
+        // );
       },
     );
   }

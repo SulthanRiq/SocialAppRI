@@ -10,6 +10,7 @@ class PostModel {
   final int likes;
   final List<String> likedBy;
   final int commentsCount;
+  final List<String> topics;
   final DateTime createdAt;
   final int createdAtClient;
 
@@ -24,6 +25,7 @@ class PostModel {
     required this.likes,
     required this.likedBy,
     this.commentsCount = 0,
+    this.topics = const [],
     required this.createdAt,
     required this.createdAtClient,
   });
@@ -41,6 +43,7 @@ class PostModel {
       likes: data['likes'] ?? 0,
       likedBy: List<String>.from(data['likedBy'] ?? []),
       commentsCount: data['commentsCount'] ?? 0,
+      topics: List<String>.from(data['topics'] ?? []),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       createdAtClient: data['createdAtClient'] ?? 0,
 

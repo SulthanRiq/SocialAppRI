@@ -1,228 +1,180 @@
-// ============================================
-// FILE: lib/features/focs/controller/focs_controller.dart
-// GANTI YANG LAMA DENGAN INI (GetX Version)
-// ============================================
-
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
-import 'package:projek_mobile/features/focs/model/post_model.dart';
+import '../../../core/models/post_model.dart';
 
 class FocsController extends GetxController {
-  // State variables - Reactive
-  final _isFocsMode = true.obs;
-  final _selectedTab = 'Focs Mode'.obs;
-  final _selectedTopics = <String>{}.obs;
-  final _posts = <Post>[].obs;
-  final _filteredPosts = <Post>[].obs;
-  final _isLoading = false.obs;
-  final _errorMessage = Rxn<String>();
-  final _searchQuery = ''.obs;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Getters
-  bool get isFocsMode => _isFocsMode.value;
-  String get selectedTab => _selectedTab.value;
-  Set<String> get selectedTopics => _selectedTopics.value;
-  List<Post> get posts => _posts;
-  List<Post> get filteredPosts => _filteredPosts;
-  bool get isLoading => _isLoading.value;
-  String? get errorMessage => _errorMessage.value;
-  String get searchQuery => _searchQuery.value;
-  bool get hasSelectedTopics => _selectedTopics.isNotEmpty;
-  int get selectedTopicsCount => _selectedTopics.length;
+  // State
+  RxList<PostModel> allPosts = <PostModel>[].obs;
+  RxList<PostModel> filteredPosts = <PostModel>[].obs;
+  RxSet<String> selectedTopics = <String>{}.obs;
+  RxString searchQuery = ''.obs;
+  RxString selectedTab = 'Focs Mode'.obs;
+  RxBool isLoading = false.obs;
+  Rx<String?> errorMessage = Rx<String?>(null);
 
-  // Constructor - load initial data
+  // Focus Mode State
+  RxBool isFocusSessionActive = false.obs;
+  RxInt focusTimeRemaining = 0.obs; // in seconds
+  Timer? _focusTimer;
+
+  StreamSubscription? _postsSub;
+
   @override
   void onInit() {
     super.onInit();
-    loadPosts();
+    fetchPosts();
   }
 
-  // ==================== FOCUS MODE ====================
-
-  /// Toggle focus mode on/off
-  void setFocsMode(bool value) {
-    _isFocsMode.value = value;
-  }
-
-  /// Dismiss focus mode dialog
-  void dismissFocsMode() {
-    _isFocsMode.value = false;
-  }
-
-  // ==================== TAB MANAGEMENT ====================
-
-  /// Switch between 'Focs Mode' and 'Reference' tabs
-  void selectTab(String tab) {
-    if (tab != _selectedTab.value) {
-      _selectedTab.value = tab;
-      _applyFilters();
-    }
-  }
-
-  bool isTabSelected(String tab) => _selectedTab.value == tab;
-
-  // ==================== TOPIC FILTER ====================
-
-  /// Toggle topic selection
-  void toggleTopic(String topic) {
-    if (_selectedTopics.contains(topic)) {
-      _selectedTopics.remove(topic);
-    } else {
-      _selectedTopics.add(topic);
-    }
-    _applyFilters();
-  }
-
-  /// Set multiple topics at once (from bottom sheet)
-  void setSelectedTopics(Set<String> topics) {
-    _selectedTopics.value = topics;
-    _applyFilters();
-  }
-
-  /// Clear all topic filters
-  void clearTopicFilters() {
-    _selectedTopics.clear();
-    _applyFilters();
-  }
-
-  /// Check if topic is selected
-  bool isTopicSelected(String topic) => _selectedTopics.contains(topic);
-
-  // ==================== POST MANAGEMENT ====================
-
-  /// Load posts (simulate API call)
-  Future<void> loadPosts() async {
-    _isLoading.value = true;
-    _errorMessage.value = null;
-
+  // ================= FETCH POSTS
+  Future<void> fetchPosts() async {
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(milliseconds: 500));
+      isLoading.value = true;
+      errorMessage.value = null;
 
-      // Load dummy data
-      _posts.value = Post.dummyPosts();
-      _applyFilters();
-
-      _isLoading.value = false;
+      _postsSub = _firestore
+          .collection('posts')
+          .orderBy('createdAtClient', descending: true)
+          .snapshots()
+          .listen(
+            (snapshot) {
+          List<PostModel> posts = [];
+          for (var doc in snapshot.docs) {
+            posts.add(PostModel.fromFirestore(doc));
+          }
+          allPosts.value = posts;
+          _applyFilters();
+          isLoading.value = false;
+        },
+        onError: (error) {
+          errorMessage.value = 'Error loading posts: $error';
+          isLoading.value = false;
+        },
+      );
     } catch (e) {
-      _isLoading.value = false;
-      _errorMessage.value = 'Failed to load posts: ${e.toString()}';
+      errorMessage.value = 'Failed to fetch posts';
+      isLoading.value = false;
     }
   }
 
-  /// Refresh posts (pull to refresh)
-  Future<void> refreshPosts() async {
-    await loadPosts();
-  }
-
-  /// Apply filters based on selected tab and topics
+  // ================= APPLY FILTERS
   void _applyFilters() {
-    List<Post> tempPosts = List.from(_posts);
+    List<PostModel> filtered = allPosts;
 
-    // Filter by tab
-    if (_selectedTab.value == 'Reference') {
-      // Only show posts with categories in Reference tab
-      tempPosts = tempPosts.where((post) => post.category != null).toList();
-    }
-
-    // Filter by selected topics
-    if (_selectedTopics.isNotEmpty) {
-      tempPosts = tempPosts.where((post) {
-        if (post.category == null) return false;
-        return _selectedTopics.contains(post.category);
+    // Filter by topics
+    if (selectedTopics.isNotEmpty) {
+      filtered = filtered.where((post) {
+        return post.topics.any((topic) => selectedTopics.contains(topic));
       }).toList();
     }
 
-    _filteredPosts.value = tempPosts;
-  }
-
-  /// Get posts for current view
-  List<Post> getCurrentPosts() {
-    return _filteredPosts;
-  }
-
-  // ==================== POST INTERACTIONS ====================
-
-  /// Like a post
-  void likePost(String postId) {
-    final index = _posts.indexWhere((post) => post.id == postId);
-    if (index != -1) {
-      final post = _posts[index];
-      _posts[index] = post.copyWith(
-        isLiked: !post.isLiked,
-        likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-      );
-      _applyFilters();
+    // Filter by search query
+    if (searchQuery.isNotEmpty) {
+      filtered = filtered.where((post) {
+        return post.content.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+            post.username.toLowerCase().contains(searchQuery.value.toLowerCase());
+      }).toList();
     }
+
+    filteredPosts.value = filtered;
   }
 
-  /// Bookmark a post
-  void bookmarkPost(String postId) {
-    final index = _posts.indexWhere((post) => post.id == postId);
-    if (index != -1) {
-      final post = _posts[index];
-      _posts[index] = post.copyWith(
-        isBookmarked: !post.isBookmarked,
-      );
-      _applyFilters();
-    }
-  }
-
-  /// Comment on a post (increment comment count)
-  void commentOnPost(String postId) {
-    final index = _posts.indexWhere((post) => post.id == postId);
-    if (index != -1) {
-      final post = _posts[index];
-      _posts[index] = post.copyWith(
-        comments: post.comments + 1,
-      );
-      _applyFilters();
-    }
-  }
-
-  /// Share a post (increment share count)
-  void sharePost(String postId) {
-    final index = _posts.indexWhere((post) => post.id == postId);
-    if (index != -1) {
-      final post = _posts[index];
-      _posts[index] = post.copyWith(
-        shares: post.shares + 1,
-      );
-      _applyFilters();
-    }
-  }
-
-  // ==================== SEARCH ====================
-
-  /// Search posts by content or username
+  // ================= SEARCH
   void searchPosts(String query) {
-    _searchQuery.value = query;
+    searchQuery.value = query;
+    _applyFilters();
+  }
 
-    if (query.isEmpty) {
-      _applyFilters();
+  void clearSearch() {
+    searchQuery.value = '';
+    _applyFilters();
+  }
+
+  // ================= TOPICS
+  void setSelectedTopics(Set<String> topics) {
+    selectedTopics.value = topics;
+    _applyFilters();
+  }
+
+  bool get hasSelectedTopics => selectedTopics.isNotEmpty;
+  int get selectedTopicsCount => selectedTopics.length;
+
+  // ================= TAB
+  void selectTab(String tab) {
+    selectedTab.value = tab;
+  }
+
+  bool isTabSelected(String tab) => selectedTab.value == tab;
+
+  // ================= GET CURRENT POSTS
+  List<PostModel> getCurrentPosts() {
+    if (selectedTab.value == 'Focs Mode') {
+      return filteredPosts;
     } else {
-      final filtered = _posts.where((post) {
-        return post.content.toLowerCase().contains(query.toLowerCase()) ||
-            post.userName.toLowerCase().contains(query.toLowerCase());
-      }).toList();
-
-      _filteredPosts.value = filtered;
+      // Reference mode: bisa tampilkan saved posts atau bookmarked posts
+      return filteredPosts.where((post) => post.topics.isNotEmpty).toList();
     }
   }
 
-  /// Clear search
-  void clearSearch() {
-    _searchQuery.value = '';
-    _applyFilters();
+  // ================= FOCUS SESSION
+  void startFocusSession({int minutes = 25}) {
+    isFocusSessionActive.value = true;
+    focusTimeRemaining.value = minutes * 60;
+
+    _focusTimer?.cancel();
+    _focusTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (focusTimeRemaining.value > 0) {
+        focusTimeRemaining.value--;
+      } else {
+        endFocusSession();
+      }
+    });
+
+    Get.snackbar(
+      'Focus Mode',
+      'Focus session dimulai: $minutes menit',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+    );
   }
 
-  // ==================== UTILITY ====================
+  void endFocusSession() {
+    _focusTimer?.cancel();
+    isFocusSessionActive.value = false;
+    focusTimeRemaining.value = 0;
 
-  /// Reset all filters and state
-  void resetAll() {
-    _selectedTopics.clear();
-    _searchQuery.value = '';
-    _selectedTab.value = 'Focs Mode';
-    _isFocsMode.value = false;
-    _applyFilters();
+    Get.snackbar(
+      'Focus Mode',
+      'Focus session selesai!',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  }
+
+  String get focusTimeFormatted {
+    int minutes = focusTimeRemaining.value ~/ 60;
+    int seconds = focusTimeRemaining.value % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  // ================= ACTIONS
+  Future<void> refreshPosts() async {
+    await fetchPosts();
+  }
+
+  void likePost(String postId) {
+    // Implement like logic
+  }
+
+  void sharePost(String postId) {
+    // Implement share logic
+  }
+
+  @override
+  void onClose() {
+    _postsSub?.cancel();
+    _focusTimer?.cancel();
+    super.onClose();
   }
 }

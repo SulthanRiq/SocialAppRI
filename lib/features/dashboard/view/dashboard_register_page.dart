@@ -11,7 +11,9 @@ import 'package:projek_mobile/features/focs/view/focs_page.dart';
 import 'package:projek_mobile/features/notification/view/notification_page.dart';
 import 'package:projek_mobile/features/search/view/search_page.dart';
 import 'package:projek_mobile/features/create_post/view/create_post_page.dart';
+import '../../../common/widgets/custom_bottom_navbar.dart';
 import '../../../core/controllers/auth_controller.dart';
+import '../../notification/controller/notification_controller.dart';
 import '../../register/widgets/base64_image_widget.dart';
 import '../../comment/view/comment_bottom_sheet.dart';
 import 'share_post_view.dart';
@@ -416,129 +418,114 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
 
-      // BOTTOM NAVIGATION BAR (FIXED)
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          height: 65,
-          decoration: BoxDecoration(
-            color: topBarColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              // Home
-              _buildNavItem(
-                icon: Icons.home,
-                isSelected: _selectedIndex == 0,
-                onTap: () => setState(() => _selectedIndex = 0),
-              ),
+      bottomNavigationBar: CustomBottomNavBar(
+        selectedIndex: _selectedIndex,
+        onItemTapped: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
 
-              // Search
-              _buildNavItem(
-                icon: Icons.search,
-                isSelected: _selectedIndex == 1,
-                onTap: () {
-                  setState(() => _selectedIndex = 1);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SearchScreen(),
-                    ),
-                  );
-                },
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SearchScreen(),
               ),
-
-              // Create / Focs Mode
-              _buildNavItem(
-                icon: Icons.add_box,
-                isSelected: _selectedIndex == 2,
-                onTap: () {
-                  setState(() => _selectedIndex = 2);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const FocsCScreen(),
-                    ),
-                  );
-                },
+            );
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const FocsCScreen(),
               ),
-
-              // Notifications
-              _buildNavItem(
-                icon: Icons.notifications,
-                isSelected: _selectedIndex == 3,
-                onTap: () {
-                  setState(() => _selectedIndex = 3);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const NotificationScreen(),
-                    ),
-                  );
-                },
+            );
+          } else if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NotificationScreen(),
               ),
-
-              // Messages
-              _buildNavItem(
-                icon: Icons.chat_bubble,
-                isSelected: _selectedIndex == 4,
-                onTap: () {
-                  setState(() => _selectedIndex = 4);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const InboxScreen(),
-                    ),
-                  );
-                },
+            );
+          } else if (index == 4) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const InboxScreen(),
               ),
-            ],
-          ),
-        ),
+            );
+          }
+        },
       ),
     );
   }
 
   // Helper widget untuk navigation item
-  Widget _buildNavItem({
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : Colors.white70,
-              size: 28,
-            ),
-            if (isSelected)
-              Container(
-                margin: const EdgeInsets.only(top: 4),
-                height: 3,
-                width: 30,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildNavItem({
+  //   required IconData icon,
+  //   required bool isSelected,
+  //   required VoidCallback onTap,
+  // }) {
+  //   return GestureDetector(
+  //     onTap: onTap,
+  //     child: Container(
+  //       padding: const EdgeInsets.symmetric(vertical: 8),
+  //       child: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           Icon(
+  //             icon,
+  //             color: isSelected ? Colors.white : Colors.white70,
+  //             size: 28,
+  //           ),
+  //           if (isSelected)
+  //             Container(
+  //               margin: const EdgeInsets.only(top: 4),
+  //               height: 3,
+  //               width: 30,
+  //               decoration: BoxDecoration(
+  //                 color: Colors.white,
+  //                 borderRadius: BorderRadius.circular(2),
+  //               ),
+  //             ),
+  //           // ✅ BADGE untuk notifications
+  //           if (index == 3) // Notification index
+  //             Positioned(
+  //               right: -4,
+  //               top: -4,
+  //               child: Obx(() {
+  //                 final notifController = Get.find<NotificationController>();
+  //                 final count = notifController.unreadCount.value;
+  //
+  //                 if (count == 0) return const SizedBox.shrink();
+  //
+  //                 return Container(
+  //                   padding: const EdgeInsets.all(4),
+  //                   decoration: const BoxDecoration(
+  //                     color: Colors.red,
+  //                     shape: BoxShape.circle,
+  //                   ),
+  //                   constraints: const BoxConstraints(
+  //                     minWidth: 18,
+  //                     minHeight: 18,
+  //                   ),
+  //                   child: Center(
+  //                     child: Text(
+  //                       count > 9 ? '9+' : '$count',
+  //                       style: const TextStyle(
+  //                         color: Colors.white,
+  //                         fontSize: 10,
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 );
+  //               }),
+  //             ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // Helper widget untuk tab item (For You / Following)
   Widget _buildTabItem(String text, int index) {

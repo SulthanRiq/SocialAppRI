@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:projek_mobile/core/controllers/post_controller.dart';
+import 'package:projek_mobile/features/focs/model/post_model.dart';
 import '../../../core/controllers/auth_controller.dart';
 import '../../register/widgets/base64_image_widget.dart';
 import 'package:projek_mobile/features/settings/view/settings_page.dart';
@@ -23,11 +25,13 @@ class ProfileMenuPage extends StatefulWidget {
 
 class _ProfileMenuPageState extends State<ProfileMenuPage> {
   late final AuthController authController;
+  late final PostController postController;
 
   @override
   void initState() {
     super.initState();
     authController = Get.find<AuthController>();
+    postController = Get.find<PostController>();
   }
 
   /// Panggil refresh data user setelah edit profile.
@@ -110,9 +114,15 @@ class _ProfileMenuPageState extends State<ProfileMenuPage> {
                     // PROFILE CARD dengan Data Dinamis
                     Obx(() {
                       final user = authController.currentUser.value;
+                      final userId = user?.uid;
                       final username = user?.username ?? 'User';
                       final email = user?.email ?? 'email@example.com';
                       final photoUrl = user?.photoUrl;
+
+                      // Hitung post user
+                      final userPostCount = postController.posts
+                          .where((post) => post.userId == userId)
+                          .length;
 
                       return Container(
                         width: double.infinity,
@@ -189,17 +199,17 @@ class _ProfileMenuPageState extends State<ProfileMenuPage> {
                             // Stats (placeholder)
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                Icon(Icons.bar_chart, size: 18),
-                                SizedBox(width: 4),
-                                Text('0 Posts', style: TextStyle(fontSize: 13)),
-                                SizedBox(width: 24),
-                                SizedBox(
-                                  height: 14,
-                                  child: VerticalDivider(thickness: 0.8),
-                                ),
-                                SizedBox(width: 24),
-                                Text('0 Followers', style: TextStyle(fontSize: 13)),
+                              children: [
+                                const Icon(Icons.bar_chart, size: 18),
+                                const SizedBox(width: 4),
+                                Text('$userPostCount Posts', style: const TextStyle(fontSize: 13)),
+                                // const SizedBox(width: 24),
+                                // const SizedBox(
+                                //   height: 14,
+                                //   child: VerticalDivider(thickness: 0.8),
+                                // ),
+                                // SizedBox(width: 24),
+                                // Text('0 Followers', style: TextStyle(fontSize: 13)),
                               ],
                             ),
                           ],

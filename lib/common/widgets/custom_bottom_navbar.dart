@@ -3,19 +3,22 @@ import 'package:flutter/material.dart';
 class CustomBottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onItemTapped;
+  final Color? backgroundColor;
 
   const CustomBottomNavBar({
-    super.key,
+    Key? key,
     required this.selectedIndex,
     required this.onItemTapped,
-  });
+    this.backgroundColor,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final Color topBarColor = backgroundColor ?? const Color(0xFF6B95A8);
+
     return Container(
-      height: 65,
       decoration: BoxDecoration(
-        color: const Color(0xFF6B95A8), // biru abu-abu
+        color: topBarColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -24,56 +27,53 @@ class CustomBottomNavBar extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // Home
-          _buildNavItem(
-            icon: Icons.home,
-            isSelected: selectedIndex == 0,
-            onTap: () => onItemTapped(0),
+      child: SafeArea(
+        child: Container(
+          height: 65,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(
+                context: context,
+                icon: Icons.home,
+                index: 0,
+              ),
+              _buildNavItem(
+                context: context,
+                icon: Icons.search,
+                index: 1,
+              ),
+              _buildNavItem(
+                context: context,
+                icon: Icons.add_box,
+                index: 2,
+              ),
+              _buildNavItem(
+                context: context,
+                icon: Icons.notifications,
+                index: 3,
+              ),
+              _buildNavItem(
+                context: context,
+                icon: Icons.chat_bubble,
+                index: 4,
+              ),
+            ],
           ),
-
-          // Search
-          _buildNavItem(
-            icon: Icons.search,
-            isSelected: selectedIndex == 1,
-            onTap: () => onItemTapped(1),
-          ),
-
-          // Create / Focs Mode (tombol tengah)
-          _buildNavItem(
-            icon: Icons.add_box,
-            isSelected: selectedIndex == 2,
-            onTap: () => onItemTapped(2),
-          ),
-
-          // Notifications
-          _buildNavItem(
-            icon: Icons.notifications,
-            isSelected: selectedIndex == 3,
-            onTap: () => onItemTapped(3),
-          ),
-
-          // Messages
-          _buildNavItem(
-            icon: Icons.chat_bubble,
-            isSelected: selectedIndex == 4,
-            onTap: () => onItemTapped(4),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  // Helper widget untuk navigation item
   Widget _buildNavItem({
+    required BuildContext context,
     required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
+    required int index,
   }) {
+    bool isSelected = selectedIndex == index;
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => onItemTapped(index),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(

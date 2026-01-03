@@ -19,7 +19,19 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   final TextEditingController _postController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   File? _selectedImage;
+  Set<String> _selectedTopics = {};
   bool _isPosting = false;
+
+  final Map<String, Color> topicColors = {
+    'Technology': const Color(0xFFB8860B),
+    'Sports': const Color(0xFF6B9B7F),
+    'Design': const Color(0xFF9B8BB3),
+    'Business': const Color(0xFF8FA870),
+    'Politics': const Color(0xFF4A3A3A),
+    'Science': const Color(0xFF2B5F75),
+    'Health': const Color(0xFFA97676),
+    'Gaming': const Color(0xFF4A8B8B),
+  };
 
   final AuthController authController = Get.put(AuthController());
   final PostController postController = Get.find<PostController>();
@@ -107,6 +119,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     await postController.createPost(
       content: _postController.text.trim(),
       imageFile: _selectedImage,
+      topics: _selectedTopics.toList(),
     );
 
     if (mounted) {
@@ -222,6 +235,39 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         ],
                       );
                     }),
+                    const SizedBox(height: 16),
+
+                    // Topic Selection
+                    const Text(
+                      'Pilih Topic (Opsional):',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: topicColors.keys.map((topic) {
+                        final isSelected = _selectedTopics.contains(topic);
+                        return FilterChip(
+                          label: Text(topic),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              if (selected) {
+                                _selectedTopics.add(topic);
+                              } else {
+                                _selectedTopics.remove(topic);
+                              }
+                            });
+                          },
+                          selectedColor: topicColors[topic]!.withOpacity(0.3),
+                          checkmarkColor: Colors.white,
+                        );
+                      }).toList(),
+                    ),
 
                     const SizedBox(height: 16),
 

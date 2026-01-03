@@ -70,6 +70,7 @@ class PostController extends GetxController {
   Future<void> createPost({
     required String content,
     File? imageFile,
+    List<String> topics = const [],
   }) async {
     try {
       isPosting.value = true;
@@ -92,6 +93,7 @@ class PostController extends GetxController {
         'likes': 0,
         'likedBy': [],
         'commentsCount': 0,
+        'topics': topics,
         'createdAt': FieldValue.serverTimestamp(),
         'createdAtClient': DateTime.now().millisecondsSinceEpoch,
       });

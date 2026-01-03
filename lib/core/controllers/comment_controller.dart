@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/comment_model.dart';
 import 'auth_controller.dart';
+import '../../features/notification/controller/notification_controller.dart';
+import '../models/notification_model.dart';
 
 class CommentController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -64,13 +66,13 @@ class CommentController extends GetxController {
       onError: (error) {
         print('❌ Error fetching comments: $error');
         // Jangan tampilkan error jika PERMISSION_DENIED (karena logout)
-        if (!error.toString().contains('PERMISSION_DENIED')) {
-          Get.snackbar(
-            'Error',
-            'Gagal memuat komentar: $error',
-            snackPosition: SnackPosition.BOTTOM,
-          );
-        }
+        // if (!error.toString().contains('PERMISSION_DENIED')) {
+        //   Get.snackbar(
+        //     'Error',
+        //     'Gagal memuat komentar: $error',
+        //     snackPosition: SnackPosition.BOTTOM,
+        //   );
+        // }
       },
       cancelOnError: true,
     );
@@ -113,14 +115,28 @@ class CommentController extends GetxController {
       });
 
       // Update comment count di post
+      final postDoc = await _firestore.collection('posts').doc(postId).get();
+      final postData = postDoc.data();
+      final postOwnerId = postData?['userId'];
+
       await _firestore.collection('posts').doc(postId).update({
         'commentsCount': FieldValue.increment(1),
       });
 
-      print('✅ Comment added successfully');
+      // ✅ CREATE NOTIFICATION
+      if (postOwnerId != null && postOwnerId != user.uid) {
+        final notifController = Get.find<NotificationController>();
+        await notifController.createNotification(
+          recipientId: postOwnerId,
+          type: NotificationType.comment,
+          postId: postId,
+          commentText: content.trim().length > 50
+              ? '${content.trim().substring(0, 50)}...'
+              : content.trim(),
+        );
+      }
 
     } catch (e) {
-      print('❌ Error adding comment: $e');
       Get.snackbar(
         'Error',
         'Gagal menambah komentar: $e',

@@ -3,8 +3,10 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
+import '../models/notification_model.dart';
 import '../models/post_model.dart';
 import 'auth_controller.dart';
+import '../../features/notification/controller/notification_controller.dart';
 
 class PostController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -138,6 +140,25 @@ class PostController extends GetxController {
             ? FieldValue.arrayRemove([user.uid])
             : FieldValue.arrayUnion([user.uid]),
       });
+
+      // ✅ CREATE/DELETE NOTIFICATION
+      final notifController = Get.find<NotificationController>();
+
+      if (isLiked) {
+        // Unlike: hapus notifikasi
+        await notifController.deleteNotification(
+          recipientId: post.userId,
+          postId: post.id,
+          type: NotificationType.like,
+        );
+      } else {
+        // Like: buat notifikasi
+        await notifController.createNotification(
+          recipientId: post.userId,
+          type: NotificationType.like,
+          postId: post.id,
+        );
+      }
 
     } catch (e) {
       Get.snackbar(

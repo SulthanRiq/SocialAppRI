@@ -416,89 +416,91 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
 
-      // BOTTOM NAVIGATION BAR
-      bottomNavigationBar: Container(
-        height: 65,
-        decoration: BoxDecoration(
-          color: topBarColor,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            // Home
-            _buildNavItem(
-              icon: Icons.home,
-              isSelected: _selectedIndex == 0,
-              onTap: () => setState(() => _selectedIndex = 0),
-            ),
+      // BOTTOM NAVIGATION BAR (FIXED)
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          height: 65,
+          decoration: BoxDecoration(
+            color: topBarColor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              // Home
+              _buildNavItem(
+                icon: Icons.home,
+                isSelected: _selectedIndex == 0,
+                onTap: () => setState(() => _selectedIndex = 0),
+              ),
 
-            // Search
-            _buildNavItem(
-              icon: Icons.search,
-              isSelected: _selectedIndex == 1,
-              onTap: () {
-                setState(() => _selectedIndex = 1);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SearchScreen(),
-                  ),
-                );
-              },
-            ),
+              // Search
+              _buildNavItem(
+                icon: Icons.search,
+                isSelected: _selectedIndex == 1,
+                onTap: () {
+                  setState(() => _selectedIndex = 1);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SearchScreen(),
+                    ),
+                  );
+                },
+              ),
 
-            // Create / Focs Mode
-            _buildNavItem(
-              icon: Icons.add_box,
-              isSelected: _selectedIndex == 2,
-              onTap: () {
-                setState(() => _selectedIndex = 2);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const FocsCScreen(),
-                  ),
-                );
-              },
-            ),
+              // Create / Focs Mode
+              _buildNavItem(
+                icon: Icons.add_box,
+                isSelected: _selectedIndex == 2,
+                onTap: () {
+                  setState(() => _selectedIndex = 2);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const FocsCScreen(),
+                    ),
+                  );
+                },
+              ),
 
-            // Notifications
-            _buildNavItem(
-              icon: Icons.notifications,
-              isSelected: _selectedIndex == 3,
-              onTap: () {
-                setState(() => _selectedIndex = 3);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NotificationScreen(),
-                  ),
-                );
-              },
-            ),
+              // Notifications
+              _buildNavItem(
+                icon: Icons.notifications,
+                isSelected: _selectedIndex == 3,
+                onTap: () {
+                  setState(() => _selectedIndex = 3);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationScreen(),
+                    ),
+                  );
+                },
+              ),
 
-            // Messages
-            _buildNavItem(
-              icon: Icons.chat_bubble,
-              isSelected: _selectedIndex == 4,
-              onTap: () {
-                setState(() => _selectedIndex = 4);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const InboxScreen(),
-                  ),
-                );
-              },
-            ),
-          ],
+              // Messages
+              _buildNavItem(
+                icon: Icons.chat_bubble,
+                isSelected: _selectedIndex == 4,
+                onTap: () {
+                  setState(() => _selectedIndex = 4);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const InboxScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

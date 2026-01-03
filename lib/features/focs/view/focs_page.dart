@@ -395,11 +395,10 @@ class FocsCScreen extends StatelessWidget {
   }
 
   // ========================================
-  // BOTTOM NAVIGATION BAR
-  // ========================================
+// BOTTOM NAVIGATION BAR (FIXED)
+// ========================================
   Widget _buildBottomNavBar(BuildContext context) {
     return Container(
-      height: 65,
       decoration: BoxDecoration(
         color: const Color(0xFF6B95A8),
         boxShadow: [
@@ -410,15 +409,20 @@ class FocsCScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(Icons.home, false, 0, context),
-          _buildNavItem(Icons.search, false, 1, context),
-          _buildNavItem(Icons.add_box, true, 2, context),
-          _buildNavItem(Icons.notifications, false, 3, context),
-          _buildNavItem(Icons.chat_bubble, false, 4, context),
-        ],
+      child: SafeArea(
+        child: Container(
+          height: 65,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(Icons.home, false, 0, context),
+              _buildNavItem(Icons.search, false, 1, context),
+              _buildNavItem(Icons.add_box, true, 2, context),
+              _buildNavItem(Icons.notifications, false, 3, context),
+              _buildNavItem(Icons.chat_bubble, false, 4, context),
+            ],
+          ),
+        ),
       ),
     );
   }

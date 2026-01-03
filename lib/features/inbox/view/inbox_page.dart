@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../common/widgets/custom_bottom_navbar.dart';
 import '../../dashboard/view/dashboard_register_page.dart';
 import '../../search/view/search_page.dart';
 import '../../focs/view/focs_page.dart';
@@ -12,6 +13,8 @@ class InboxScreen extends StatefulWidget {
 }
 
 class _InboxScreenState extends State<InboxScreen> {
+  int _selectedIndex = 4;
+
   // Data dummy untuk messages
   final List<Message> messages = [
     Message(
@@ -85,7 +88,44 @@ class _InboxScreenState extends State<InboxScreen> {
                 return _buildMessageItem(messages[index]);
               },
             ),
-      bottomNavigationBar: _buildBottomNavBar(),
+      bottomNavigationBar: CustomBottomNavBar(
+        selectedIndex: _selectedIndex,
+        onItemTapped: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+
+          if (index == 0) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomePage(),
+              ),
+            );
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const FocsCScreen(),
+              ),
+            );
+          } else if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NotificationScreen(),
+              ),
+            );
+          } else if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SearchScreen(),
+              ),
+            );
+          }
+        },
+      ),
     );
   }
 

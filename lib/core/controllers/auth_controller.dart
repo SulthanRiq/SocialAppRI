@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:projek_mobile/core/controllers/post_controller.dart';
 import '../models/user_model.dart';
 import '../../features/register/services/auth_service.dart';
@@ -16,6 +17,7 @@ class AuthController extends GetxController {
   final RxBool isPasswordVisible = false.obs;
   final RxBool isConfirmPasswordVisible = false.obs;
   final Rx<File?> selectedProfileImage = Rx<File?>(null);
+  final RxBool isCheckingSession = true.obs; // Status checking session
 
   // Text Controllers
   final TextEditingController usernameController = TextEditingController();
@@ -23,9 +25,19 @@ class AuthController extends GetxController {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
 
+  // SharedPreferences keys
+  static const String _keyIsLoggedIn = 'is_logged_in';
+  static const String _keyUserId = 'user_id';
+  static const String _keyUserEmail = 'user_email';
+  static const String _keyUsername = 'username';
+
   @override
   void onInit() {
     super.onInit();
+
+    // Check session saat app start
+    _checkSession();
+
     // Listen to auth state changes
     _authService.authStateChanges.listen((user) {
       if (user != null) {
@@ -43,6 +55,76 @@ class AuthController extends GetxController {
     // passwordController.dispose();
     // confirmPasswordController.dispose();
     super.onClose();
+  }
+
+  // Check session dari SharedPreferences
+  Future<void> _checkSession() async {
+    try {
+      isCheckingSession.value = true;
+      print('🔍 Checking session...');
+
+      final prefs = await SharedPreferences.getInstance();
+      final isLoggedIn = prefs.getBool(_keyIsLoggedIn) ?? false;
+      final userId = prefs.getString(_keyUserId);
+
+      if (isLoggedIn && userId != null) {
+        print('✅ Session found, loading user data...');
+        await _loadUserData(userId);
+
+        // Auto navigate to home jika sudah login
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (currentUser.value != null) {
+          Get.offAllNamed('/home');
+        }
+      } else {
+        print('ℹ️ No active session found');
+      }
+    } catch (e) {
+      print('🔴 Error checking session: $e');
+    } finally {
+      isCheckingSession.value = false;
+    }
+  }
+
+  // Save session ke SharedPreferences
+  Future<void> _saveSession(UserModel user) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_keyIsLoggedIn, true);
+      await prefs.setString(_keyUserId, user.uid);
+      await prefs.setString(_keyUserEmail, user.email);
+      await prefs.setString(_keyUsername, user.username);
+      print('✅ Session saved');
+    } catch (e) {
+      print('🔴 Error saving session: $e');
+    }
+  }
+
+  // Clear session dari SharedPreferences
+  Future<void> _clearSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_keyIsLoggedIn);
+      await prefs.remove(_keyUserId);
+      await prefs.remove(_keyUserEmail);
+      await prefs.remove(_keyUsername);
+      print('✅ Session cleared');
+    } catch (e) {
+      print('🔴 Error clearing session: $e');
+    }
+  }
+
+  // Get saved user info (optional, untuk display di UI)
+  Future<Map<String, String?>> getSavedUserInfo() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return {
+        'email': prefs.getString(_keyUserEmail),
+        'username': prefs.getString(_keyUsername),
+      };
+    } catch (e) {
+      return {'email': null, 'username': null};
+    }
   }
 
   // Pick image from gallery or camera
@@ -130,6 +212,8 @@ class AuthController extends GetxController {
     final userData = await _authService.getUserData(uid);
     if (userData != null) {
       currentUser.value = userData;
+      // Save session setiap kali load user data
+      await _saveSession(userData);
     }
   }
 
@@ -189,7 +273,6 @@ class AuthController extends GetxController {
     // Validasi input
     final validationError = _validateRegisterInput();
     if (validationError != null) {
-      // Gunakan ScaffoldMessenger untuk snackbar yang lebih reliable
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(validationError),
@@ -214,11 +297,12 @@ class AuthController extends GetxController {
       isLoading.value = false;
 
       if (result['success']) {
-
-        final userModel = result['user']; // 👈 ambil user
+        final userModel = result['user'];
 
         if (userModel != null) {
-          currentUser.value = userModel; // 🔥 FORCE LOGIN
+          currentUser.value = userModel;
+          // Save session setelah register berhasil
+          await _saveSession(userModel);
         }
 
         // Clear fields
@@ -238,21 +322,10 @@ class AuthController extends GetxController {
 
         // Navigate to home
         print('✅ Navigating to home page...');
-
-        // Gunakan Navigator biasa atau Get.offAll
         await Future.delayed(const Duration(milliseconds: 500));
 
         if (context.mounted) {
-          // Option 1: Gunakan Navigator.pushReplacement
-          // Navigator.of(context).pushReplacementNamed('/home');
-
-          // Option 2: Atau gunakan Get.offAllNamed jika route sudah di-setup
           Get.offAllNamed('/home');
-
-          // Option 3: Atau direct navigation ke HomePage
-          // Navigator.of(context).pushReplacement(
-          //   MaterialPageRoute(builder: (context) => const HomePage()),
-          // );
         }
       } else {
         if (context.mounted) {
@@ -314,8 +387,20 @@ class AuthController extends GetxController {
       isLoading.value = false;
 
       if (result['success']) {
-        final postController = Get.find<PostController>();
-        postController.refreshPosts();
+        // Load user data dan save session
+        final user = result['user'];
+        if (user != null) {
+          currentUser.value = user;
+          await _saveSession(user);
+        }
+
+        // Refresh posts
+        try {
+          final postController = Get.find<PostController>();
+          postController.refreshPosts();
+        } catch (e) {
+          print('Post controller not found: $e');
+        }
 
         _clearFields();
 
@@ -362,11 +447,14 @@ class AuthController extends GetxController {
     }
   }
 
-  // Logout function - Updated untuk menghindari TextEditingController error
+  // Logout function - Clear session
   Future<void> logout() async {
     try {
       // Logout dari Firebase Auth & Google
       await _authService.signOut();
+
+      // Clear session dari SharedPreferences
+      await _clearSession();
 
       // Clear current user
       currentUser.value = null;
@@ -442,6 +530,15 @@ class AuthController extends GetxController {
 
     isLoading.value = false;
 
+    if (result['success']) {
+      // Save session setelah login Facebook berhasil
+      final user = result['user'];
+      if (user != null) {
+        currentUser.value = user;
+        await _saveSession(user);
+      }
+    }
+
     Get.showSnackbar(
       GetSnackBar(
         title: result['success'] ? 'Berhasil' : 'Error',
@@ -457,10 +554,6 @@ class AuthController extends GetxController {
       Get.offAllNamed('/home');
     }
   }
-
-
-
-
 
   // Clear all fields
   void _clearFields() {

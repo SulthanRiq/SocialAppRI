@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:projek_mobile/core/controllers/post_controller.dart';
 import '../models/user_model.dart';
 import '../../features/register/services/auth_service.dart';
+import 'analytics_controller.dart';
 
 class AuthController extends GetxController {
   final AuthService _authService = AuthService();
@@ -305,6 +306,13 @@ class AuthController extends GetxController {
           await _saveSession(userModel);
         }
 
+        // Track signup
+        final analyticsController = Get.find<AnalyticsController>();
+        await analyticsController.trackSignUp(method: 'email');
+
+        // Set current user
+        await analyticsController.setCurrentUser(result['user']);
+
         // Clear fields
         _clearFields();
 
@@ -394,6 +402,12 @@ class AuthController extends GetxController {
           await _saveSession(user);
         }
 
+        final analyticsController = Get.find<AnalyticsController>();
+        await analyticsController.trackLogin(method: 'email');
+
+        // Set current user
+        await analyticsController.setCurrentUser(result['user']);
+
         // Refresh posts
         try {
           final postController = Get.find<PostController>();
@@ -455,6 +469,10 @@ class AuthController extends GetxController {
 
       // Clear session dari SharedPreferences
       await _clearSession();
+
+      // Track logout
+      final analyticsController = Get.find<AnalyticsController>();
+      await analyticsController.trackLogout();
 
       // Clear current user
       currentUser.value = null;

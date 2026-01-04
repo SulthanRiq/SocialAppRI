@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../common/widgets/custom_bottom_navbar.dart';
 import '../../dashboard/view/dashboard_register_page.dart';
 import '../../search/view/search_page.dart';
 import '../../focs/view/focs_page.dart';
 import '../../notification/view/notification_page.dart';
+import '../controller/chat_controller.dart';
+import '../../../core/controllers/auth_controller.dart';
+import '../../../core/models/chat_model.dart';
+import 'search_user_page.dart';
+import 'chat_detail_page.dart';
 
 class InboxScreen extends StatefulWidget {
   const InboxScreen({Key? key}) : super(key: key);
@@ -14,34 +21,21 @@ class InboxScreen extends StatefulWidget {
 
 class _InboxScreenState extends State<InboxScreen> {
   int _selectedIndex = 4;
+  final chatController = Get.put(ChatController());
+  final authController = Get.find<AuthController>();
 
-  // Data dummy untuk messages
-  final List<Message> messages = [
-    Message(
-      name: 'Martina',
-      username: '@MartinaCraig',
-      message: 'Halo, bisakah kamu bertemu dengan saya di cafe?',
-      date: '22/08/25',
-      avatarUrl: 'https://i.pravatar.cc/150?img=5',
-      isRead: false,
-    ),
-    Message(
-      name: 'John Doe',
-      username: '@johndoe',
-      message: 'Thanks for your help yesterday!',
-      date: '21/08/25',
-      avatarUrl: 'https://i.pravatar.cc/150?img=12',
-      isRead: true,
-    ),
-    Message(
-      name: 'Sarah Smith',
-      username: '@sarahsmith',
-      message: 'Can we reschedule our meeting?',
-      date: '20/08/25',
-      avatarUrl: 'https://i.pravatar.cc/150?img=25',
-      isRead: true,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadChatRooms();
+  }
+
+  void _loadChatRooms() {
+    final currentUserId = authController.currentUser.value?.uid;
+    if (currentUserId != null) {
+      chatController.loadChatRooms(currentUserId);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,35 +53,64 @@ class _InboxScreenState extends State<InboxScreen> {
             fontWeight: FontWeight.w500,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add, color: Colors.black),
+            onPressed: () {
+              Get.to(() => const SearchUserPage());
+            },
+            tooltip: 'Cari User',
+          ),
+        ],
       ),
-      body: messages.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    size: 80,
+      body: Obx(() {
+        if (chatController.chatRooms.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.chat_bubble_outline,
+                  size: 80,
+                  color: Colors.grey[600],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Belum ada pesan',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Tap + untuk memulai chat',
+                  style: TextStyle(
+                    fontSize: 14,
                     color: Colors.grey[600],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No messages yet',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : ListView.builder(
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                return _buildMessageItem(messages[index]);
-              },
+                ),
+              ],
             ),
+          );
+        }
+
+        return ListView.builder(
+          itemCount: chatController.chatRooms.length,
+          itemBuilder: (context, index) {
+            final chatRoom = chatController.chatRooms[index];
+            return _buildChatRoomItem(chatRoom);
+          },
+        );
+      }),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Get.to(() => const SearchUserPage());
+        },
+        backgroundColor: const Color(0xFF6B95A8),
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: _selectedIndex,
         onItemTapped: (index) {
@@ -129,216 +152,179 @@ class _InboxScreenState extends State<InboxScreen> {
     );
   }
 
-  Widget _buildMessageItem(Message message) {
-    return InkWell(
-      onTap: () {
-        // TODO: Navigasi ke detail chat
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Opening chat with ${message.name}'),
-            duration: const Duration(seconds: 1),
-          ),
-        );
-      },
-      child: Container(
-        color:
-            message.isRead ? const Color(0xFFCFD8DC) : const Color(0xFFE0E7EB),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Avatar
-            CircleAvatar(
-              radius: 24,
-              backgroundImage: NetworkImage(message.avatarUrl),
-              backgroundColor: Colors.grey[300],
-            ),
-            const SizedBox(width: 12),
-            // Message Content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildChatRoomItem(ChatRoom chatRoom) {
+    final currentUserId = authController.currentUser.value?.uid ?? '';
+    final otherUserId = chatRoom.participants.firstWhere(
+          (id) => id != currentUserId,
+      orElse: () => '',
+    );
+
+    return FutureBuilder<ChatUser?>(
+      future: chatController.getUserData(otherUserId),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const SizedBox.shrink();
+        }
+
+        final otherUser = snapshot.data!;
+        final unreadCount = chatRoom.unreadCount[currentUserId] ?? 0;
+        final hasUnread = unreadCount > 0;
+
+        return InkWell(
+          onTap: () {
+            Get.to(() => ChatDetailPage(
+              chatRoomId: chatRoom.id,
+              otherUserId: otherUserId,
+            ));
+          },
+          child: Container(
+            color: hasUnread
+                ? const Color(0xFFE0E7EB)
+                : const Color(0xFFCFD8DC),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Avatar
+                Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 28,
+                      backgroundImage: otherUser.photoUrl != null
+                          ? NetworkImage(otherUser.photoUrl!)
+                          : null,
+                      backgroundColor: Colors.grey[300],
+                      child: otherUser.photoUrl == null
+                          ? Text(
+                        otherUser.username[0].toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      )
+                          : null,
+                    ),
+                    if (hasUnread)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 20,
+                            minHeight: 20,
+                          ),
+                          child: Text(
+                            unreadCount > 99 ? '99+' : unreadCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 12),
+
+                // Message Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Name and Username
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Text(
-                              message.name,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Username
+                          Expanded(
+                            child: Text(
+                              otherUser.username,
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: message.isRead
-                                    ? FontWeight.w600
-                                    : FontWeight.bold,
+                                fontWeight: hasUnread
+                                    ? FontWeight.bold
+                                    : FontWeight.w600,
                                 color: Colors.black,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                message.username,
+                          ),
+
+                          // Time
+                          if (chatRoom.lastMessageTime != null)
+                            Text(
+                              _formatTime(chatRoom.lastMessageTime!),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[700],
+                                fontWeight: hasUnread
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+
+                      // Last Message
+                      if (chatRoom.lastMessage != null)
+                        Row(
+                          children: [
+                            if (chatRoom.lastMessageSenderId == currentUserId)
+                              Text(
+                                'Anda: ',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
                                 ),
+                              ),
+                            Expanded(
+                              child: Text(
+                                chatRoom.lastMessage!,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[800],
+                                  fontWeight: hasUnread
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                                ),
+                                maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      // Date
-                      Text(
-                        message.date,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[700],
-                        ),
-                      ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  // Message Preview
-                  Text(
-                    message.message,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[800],
-                      fontWeight:
-                          message.isRead ? FontWeight.normal : FontWeight.w500,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomNavBar() {
-    return Container(
-      height: 65,
-      decoration: BoxDecoration(
-        color: const Color(0xFF6B95A8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(Icons.home, false, 0),
-          _buildNavItem(Icons.search, false, 1),
-          _buildNavItem(Icons.add_box, false, 2),
-          _buildNavItem(Icons.notifications, false, 3),
-          _buildNavItem(Icons.chat_bubble, true, 4),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, bool isActive, int index) {
-    return GestureDetector(
-      onTap: () {
-        // Jangan navigate jika sudah di halaman yang aktif
-        if (isActive) return;
-
-        // Navigasi sesuai index
-        switch (index) {
-          case 0:
-            // Home - Kembali ke HomePage
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const HomePage(),
-              ),
-            );
-            break;
-          case 1:
-            // Search
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SearchScreen(),
-              ),
-            );
-          case 2:
-            // Focs Mode
-            // TODO: Navigate to FocsCScreen
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const FocsCScreen(),
-              ),
-            );
-            break;
-          case 3:
-            // Notifications
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const NotificationScreen(),
-              ),
-            );
-            break;
-          case 4:
-            // Messages - Already on this page
-            break;
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isActive ? Colors.white : Colors.white70,
-              size: 28,
-            ),
-            if (isActive)
-              Container(
-                margin: const EdgeInsets.only(top: 4),
-                height: 3,
-                width: 30,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(2),
                 ),
-              ),
-          ],
-        ),
-      ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
-}
 
-// Model untuk Message
-class Message {
-  final String name;
-  final String username;
-  final String message;
-  final String date;
-  final String avatarUrl;
-  final bool isRead;
+  String _formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
 
-  Message({
-    required this.name,
-    required this.username,
-    required this.message,
-    required this.date,
-    required this.avatarUrl,
-    this.isRead = false,
-  });
+    if (difference.inDays == 0) {
+      return DateFormat('HH:mm').format(dateTime);
+    } else if (difference.inDays == 1) {
+      return 'Kemarin';
+    } else if (difference.inDays < 7) {
+      return DateFormat('EEEE').format(dateTime);
+    } else {
+      return DateFormat('dd/MM/yy').format(dateTime);
+    }
+  }
 }

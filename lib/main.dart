@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
+import 'package:projek_mobile/core/controllers/analytics_controller.dart';
 import 'package:projek_mobile/core/controllers/auth_controller.dart';
 import 'package:projek_mobile/core/controllers/comment_controller.dart';
 import 'package:projek_mobile/core/controllers/post_controller.dart';
@@ -23,6 +24,7 @@ void main() async {
   Get.put(CommentController());
   Get.put(NotificationController());
   Get.put(ChatController());
+  Get.put(AnalyticsController());
 
   runApp(const MyApp());
 }
@@ -32,6 +34,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final analyticsController = Get.find<AnalyticsController>();
+
     return GetMaterialApp(
       title: 'Social App',
       debugShowCheckedModeBanner: false,
@@ -39,6 +43,10 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
+
+      navigatorObservers: [
+        analyticsController.getAnalyticsObserver(),
+      ],
 
       // Initial route
       initialRoute: '/splash',

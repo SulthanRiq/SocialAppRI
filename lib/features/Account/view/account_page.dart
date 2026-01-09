@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'protected_mode_page.dart';
+import 'edit_profile_page.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
@@ -78,7 +79,13 @@ class AccountPage extends StatelessWidget {
                         elevation: 2,
                       ),
                       onPressed: () {
-                        // TODO: buka halaman edit info
+                        // ✅ MASUK KE HALAMAN EDIT PROFILE
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EditProfilePage(),
+                          ),
+                        );
                       },
                       child: const Text('Edit Info'),
                     ),
